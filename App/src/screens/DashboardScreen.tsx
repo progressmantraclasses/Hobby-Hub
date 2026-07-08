@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { usePlanStore } from '../store/planStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { ProgressRing } from '../components/ProgressRing';
 import { TechniqueCard } from '../components/TechniqueCard';
+import { updateAndGetStreak } from '../utils/dateStreak';
 
 export default function DashboardScreen() {
   const { plan, techniqueStatus } = usePlanStore();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [streak, setStreak] = useState(0);
+
+  useEffect(() => {
+    updateAndGetStreak().then(setStreak).catch(console.error);
+  }, []);
 
   if (!plan) return <Text style={styles.center}>No plan found.</Text>;
 
@@ -21,7 +27,7 @@ export default function DashboardScreen() {
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Your Plan</Text>
-          <Text style={styles.subtitle}>{mastered} / {total} Mastered</Text>
+          <Text style={styles.subtitle}>🔥 {streak} Day Streak  •  {mastered} / {total} Mastered</Text>
         </View>
         <ProgressRing progress={progress} size={60} strokeWidth={6} />
       </View>

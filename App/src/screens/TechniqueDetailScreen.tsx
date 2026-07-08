@@ -4,6 +4,7 @@ import { usePlanStore, TechniqueStatus } from '../store/planStore';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { ResponsiveDetailContainer } from '../components/ResponsiveDetailContainer';
 import { resourceRenderers } from '../components/resourceRenderers';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, withSequence, withTiming, runOnJS } from 'react-native-reanimated';
 
 export default function TechniqueDetailScreen() {
   const route = useRoute<RouteProp<any, 'TechniqueDetail'>>();
@@ -14,13 +15,41 @@ export default function TechniqueDetailScreen() {
   const currentStatus = techniqueStatus[technique.title] || 'pending';
   const ResourceBlock = resourceRenderers[technique.resourceType];
 
-  const handleStatusChange = (status: TechniqueStatus) => {
+  const scale = useSharedValue(0);
+  const opacity = useSharedValue(0);
+
+  const celebrationStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+    position: 'absolute',
+    alignSelf: 'center',
+    top: '30%',
+    zIndex: 10,
+  }));
+
+  const finalizeChange = (status: TechniqueStatus) => {
     updateTechniqueStatus(technique.title, status);
     navigation.goBack();
   };
 
+  const handleStatusChange = (status: TechniqueStatus) => {
+    if (status === 'mastered') {
+      opacity.value = 1;
+      scale.value = withSequence(
+        withSpring(1.5, { damping: 10, stiffness: 100 }),
+        withTiming(0, { duration: 500 }, () => {
+          runOnJS(finalizeChange)(status);
+        })
+      );
+    } else {
+      finalizeChange(status);
+    }
+  };
+
   return (
     <ResponsiveDetailContainer>
+      <Animated.Text style={[styles.celebration, celebrationStyle]}>🎉 Mastered! 🎉</Animated.Text>
+      
       <Text style={styles.title}>{technique.title}</Text>
       <Text style={styles.why}>{technique.why}</Text>
       
@@ -56,4 +85,5 @@ const styles = StyleSheet.create({
   mastered: { backgroundColor: '#10B981' },
   skipped: { backgroundColor: '#EF4444' },
   btnText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
+  celebration: { fontSize: 40, fontWeight: 'bold', color: '#10B981', textShadowColor: 'rgba(0,0,0,0.2)', textShadowOffset: { width: 1, height: 1 }, textShadowRadius: 3 },
 });
