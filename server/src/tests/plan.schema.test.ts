@@ -1,13 +1,9 @@
-import {
-  PlanRequestSchema,
-  PlanResponseSchema,
-} from "../schemas/plan.schema";
-
+import { PlanRequestSchema, PlanResponseSchema } from "../schemas/plan.schema";
 
 const validTechnique = (order: number) => ({
   title: "Practice scales",
   why: "Builds muscle memory",
-  resourceType: "video" as const,
+  resourceType: "watch" as const,
   searchQuery: "guitar scales beginner",
   order,
 });
@@ -23,10 +19,7 @@ describe("PlanRequestSchema", () => {
   });
 
   it("fails when hobby is missing", () => {
-    const result = PlanRequestSchema.safeParse({
-      level: "beginner",
-      weeklyTime: 5,
-    });
+    const result = PlanRequestSchema.safeParse({ level: "beginner", weeklyTime: 5 });
     expect(result.success).toBe(false);
   });
 
@@ -43,23 +36,19 @@ describe("PlanRequestSchema", () => {
 describe("PlanResponseSchema", () => {
   it("fails when techniques array length is below minimum (3)", () => {
     const result = PlanResponseSchema.safeParse({
-      techniques: [
-        validTechnique(1),
-        validTechnique(2),
-        validTechnique(3),
-      ],
+      techniques: [validTechnique(1), validTechnique(2), validTechnique(3)],
     });
     expect(result.success).toBe(false);
   });
 
   it("passes with 6 techniques and valid resourceType values", () => {
     const resourceTypes = [
-      "video",
-      "article",
-      "book",
-      "course",
-      "video",
-      "article",
+      "watch",
+      "read",
+      "interactive-drill",
+      "practice-checklist",
+      "watch",
+      "read",
     ] as const;
 
     const result = PlanResponseSchema.safeParse({

@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-export const ResourceType = z.enum(["video", "article", "book", "course"]);
+export const ResourceType = z.enum([
+  "watch",
+  "read",
+  "interactive-drill",
+  "practice-checklist",
+]);
 
 export const PlanRequestSchema = z.object({
   hobby: z.string().min(1),
