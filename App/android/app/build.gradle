@@ -85,6 +85,11 @@ android {
         versionCode 1
         versionName "1.0"
     }
+    externalNativeBuild {
+        cmake {
+            buildStagingDirectory "C:/tmp/HobbyHub-cxx"
+        }
+    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
