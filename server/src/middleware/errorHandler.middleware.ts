@@ -7,6 +7,15 @@ export function errorHandler(
   _next: NextFunction
 ) {
   console.error(err);
+
+  if (err instanceof Error && err.name === "AIProviderError") {
+    res.status(503).json({
+      code: "AI_SERVICE_UNAVAILABLE",
+      message: err.message,
+    });
+    return;
+  }
+
   const message = err instanceof Error ? err.message : "Internal server error";
   res.status(500).json({ error: message });
 }
