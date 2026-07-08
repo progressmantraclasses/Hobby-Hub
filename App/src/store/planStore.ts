@@ -3,14 +3,16 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PlanResponse, PlanRequest } from '../schemas/plan.schema';
 
+export type TechniqueStatus = 'pending' | 'in_progress' | 'mastered' | 'not_for_me';
+
 interface PlanState extends Partial<PlanRequest> {
   plan: PlanResponse | null;
-  techniqueStatus: Record<string, 'pending' | 'completed'>;
+  techniqueStatus: Record<string, TechniqueStatus>;
   setHobby: (hobby: string) => void;
   setLevel: (level: PlanRequest['level']) => void;
   setWeeklyTime: (time: number) => void;
   setPlan: (plan: PlanResponse) => void;
-  updateTechniqueStatus: (title: string, status: 'pending' | 'completed') => void;
+  updateTechniqueStatus: (title: string, status: TechniqueStatus) => void;
   reset: () => void;
 }
 

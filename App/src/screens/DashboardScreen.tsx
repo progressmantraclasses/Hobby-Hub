@@ -1,8 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { usePlanStore } from '../store/planStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
+import { ProgressRing } from '../components/ProgressRing';
+import { TechniqueCard } from '../components/TechniqueCard';
 
 export default function DashboardScreen() {
   const { plan, techniqueStatus } = usePlanStore();
@@ -10,34 +12,39 @@ export default function DashboardScreen() {
 
   if (!plan) return <Text style={styles.center}>No plan found.</Text>;
 
+  const total = plan.techniques.length;
+  const mastered = plan.techniques.filter((t) => techniqueStatus[t.title] === 'mastered').length;
+  const progress = total === 0 ? 0 : mastered / total;
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Your Learning Plan</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Your Plan</Text>
+          <Text style={styles.subtitle}>{mastered} / {total} Mastered</Text>
+        </View>
+        <ProgressRing progress={progress} size={60} strokeWidth={6} />
+      </View>
       <FlatList
-        data={plan.techniques}
+        data={plan.techniques.slice().sort((a, b) => a.order - b.order)}
         keyExtractor={(item) => item.title}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
+          <TechniqueCard
+            technique={item}
+            status={techniqueStatus[item.title] || 'pending'}
             onPress={() => navigation.navigate('TechniqueDetail', { technique: item })}
-          >
-            <View>
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.cardType}>{item.resourceType}</Text>
-            </View>
-            <Text>{techniqueStatus[item.title] === 'completed' ? '✅' : '⭕'}</Text>
-          </TouchableOpacity>
+          />
         )}
+        contentContainerStyle={{ paddingBottom: 40 }}
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: { flex: 1, padding: 16, backgroundColor: '#F9FAFB' },
   center: { flex: 1, textAlign: 'center', marginTop: 50 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  card: { padding: 15, backgroundColor: '#fff', borderRadius: 8, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardTitle: { fontSize: 18, fontWeight: 'bold' },
-  cardType: { color: '#666', marginTop: 5 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, paddingHorizontal: 4 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#111827' },
+  subtitle: { fontSize: 14, color: '#6B7280', marginTop: 4 },
 });

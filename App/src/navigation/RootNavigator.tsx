@@ -16,7 +16,7 @@ export default function RootNavigator() {
       <Stack.Screen name="Level" component={LevelScreen} options={{ title: 'Select Level' }} />
       <Stack.Screen name="TimeCommitment" component={TimeCommitmentScreen} options={{ title: 'Time Commitment' }} />
       <Stack.Screen name="Dashboard" component={DashboardScreen} options={{ title: 'Your Plan', headerBackVisible: false }} />
-      <Stack.Screen name="TechniqueDetail" component={TechniqueDetailScreen} options={{ title: 'Technique Detail' }} />
+      <Stack.Screen name="TechniqueDetail" component={TechniqueDetailScreen} options={{ presentation: 'transparentModal', headerShown: false }} />
     </Stack.Navigator>
   );
 }
