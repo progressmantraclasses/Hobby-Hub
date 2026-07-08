@@ -19,6 +19,13 @@ export const TechniqueSchema = z.object({
   resourceType: ResourceType,
   searchQuery: z.string().min(1),
   order: z.number().int().positive(),
+  conceptMap: z.object({
+    root: z.string(),
+    mid: z.string(),
+    leaves: z.array(z.string()).max(4),
+    insight: z.string(),
+    takeaway: z.string(),
+  }).optional(),
 });
 
 export const PlanResponseSchema = z.object({
