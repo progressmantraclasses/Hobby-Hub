@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
-import { PlanRequestSchema, PlanResponseSchema, type PlanResponse } from "../schemas/plan.schema";
+import { PlanRequestSchema, PlanSchema, type Plan } from "../schemas/plan.schema";
 import { generatePlan } from "../services/groq.service";
 import { redis } from "../config/redis";
-import { Plan } from "../models/Plan.model";
+import { Plan as PlanModel } from "../models/Plan.model";
 import { normalizeQuery } from "../utils/normalizeQuery";
 
 const TTL = 60 * 60 * 24;
@@ -19,17 +19,17 @@ export async function planController(req: Request, res: Response, next: NextFunc
   const key = normalizeQuery(hobby, level, weeklyTime);
 
   try {
-    const cached = await redis.get<PlanResponse>(key);
+    const cached = await redis.get<Plan>(key);
     if (cached) {
       console.log(`[redis-hit] ${key}`);
       res.json(cached);
       return;
     }
 
-    const mongoDoc = await Plan.findOne({ normalizedQuery: key }).lean();
+    const mongoDoc = await PlanModel.findOne({ normalizedQuery: key }).lean();
     if (mongoDoc) {
       console.log(`[mongo-hit] ${key}`);
-      const plan = PlanResponseSchema.parse({ techniques: mongoDoc.techniques });
+      const plan = PlanSchema.parse(mongoDoc);
       await redis.set(key, plan, { ex: TTL });
       res.json(plan);
       return;
@@ -37,7 +37,7 @@ export async function planController(req: Request, res: Response, next: NextFunc
 
     console.log(`[groq-miss] ${key}`);
     const plan = await generatePlan(parsed.data);
-    await Plan.create({ hobby, level, weeklyTime, normalizedQuery: key, techniques: plan.techniques });
+    await PlanModel.create({ ...plan, normalizedQuery: key });
     await redis.set(key, plan, { ex: TTL });
     res.json(plan);
   } catch (err) {

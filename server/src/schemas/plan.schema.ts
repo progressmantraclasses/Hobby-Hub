@@ -1,30 +1,32 @@
 import { z } from "zod";
 
-export const ResourceType = z.enum([
-  "watch",
-  "read",
-  "interactive-drill",
-  "practice-checklist",
-]);
-
 export const PlanRequestSchema = z.object({
   hobby: z.string().min(1),
   level: z.enum(["beginner", "intermediate", "advanced"]),
   weeklyTime: z.number().positive(),
 });
 
-export const TechniqueSchema = z.object({
+export const ChapterMetaSchema = z.object({
+  id: z.string().min(1),
   title: z.string().min(1),
-  why: z.string().min(1),
-  resourceType: ResourceType,
-  searchQuery: z.string().min(1),
   order: z.number().int().positive(),
+  summary: z.string().min(1),
+  estimatedMinutes: z.number().int().positive(),
+  completed: z.boolean().default(false),
+  contentGenerated: z.boolean().default(false),
 });
 
-export const PlanResponseSchema = z.object({
-  techniques: z.array(TechniqueSchema).min(5).max(8),
+export const PlanSchema = z.object({
+  hobby: z.string().min(1),
+  currentLevel: z.enum(["beginner", "intermediate"]),
+  targetLevel: z.enum(["intermediate", "advanced"]),
+  weeklyTimeHours: z.number().positive(),
+  estimatedDurationWeeks: z.number().int().positive(),
+  overview: z.string().min(1),
+  goal: z.string().min(1),
+  chapters: z.array(ChapterMetaSchema).min(5).max(10),
 });
 
 export type PlanRequest = z.infer<typeof PlanRequestSchema>;
-export type Technique = z.infer<typeof TechniqueSchema>;
-export type PlanResponse = z.infer<typeof PlanResponseSchema>;
+export type ChapterMeta = z.infer<typeof ChapterMetaSchema>;
+export type Plan = z.infer<typeof PlanSchema>;

@@ -1,9 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
+import { Colors } from '../theme/colors';
 
 interface Props {
-  progress: number; // 0 to 1
+  progress: number;
   size?: number;
   strokeWidth?: number;
 }
@@ -16,19 +17,16 @@ export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) =>
   return (
     <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
-        <Circle stroke="#E5E7EB" fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
+        <Circle stroke="rgba(255,255,255,0.25)" fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
         <Circle
-          stroke="#007AFF"
+          stroke={Colors.white}
           fill="none"
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
+          cx={size / 2} cy={size / 2} r={radius}
           strokeWidth={strokeWidth}
           strokeDasharray={`${circumference} ${circumference}`}
           strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          originX={size / 2}
-          originY={size / 2}
+          originX={size / 2} originY={size / 2}
           rotation="-90"
         />
       </Svg>
@@ -38,5 +36,5 @@ export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) =>
 };
 
 const styles = StyleSheet.create({
-  text: { fontSize: 14, fontWeight: 'bold', color: '#333' },
+  text: { fontSize: 14, fontWeight: '800', color: Colors.white },
 });
