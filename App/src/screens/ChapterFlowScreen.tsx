@@ -14,7 +14,7 @@ export default function ChapterFlowScreen() {
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { chapter, content } = route.params;
-  const { setChapterStatus } = usePlanStore();
+  const { updateChapterProgress, addXp, activeHobbyId } = usePlanStore();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const steps = content.steps;
@@ -26,7 +26,10 @@ export default function ChapterFlowScreen() {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
       // Finished
-      setChapterStatus(chapter.id, 'completed');
+      if (activeHobbyId) {
+        updateChapterProgress(activeHobbyId, chapter.id, 'completed');
+        addXp(50);
+      }
       navigation.replace('ChapterComplete', { chapter });
     }
   };

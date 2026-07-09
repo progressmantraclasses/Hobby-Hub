@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore, ChapterStatus } from '../store/planStore';
 import { useNavigation } from '@react-navigation/native';
@@ -11,28 +11,35 @@ const RANK = (xp: number) =>
   xp >= 800 ? '🏆 Master' : xp >= 500 ? '💎 Expert' : xp >= 200 ? '⭐ Scholar' : '🌱 Novice';
 
 const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: string }> = {
-  pending:     { label: '',            bg: 'transparent',    color: Colors.gray    },
+  pending:     { label: '',              bg: 'transparent',    color: Colors.gray    },
   in_progress: { label: '● In Progress', bg: Colors.primaryCard, color: Colors.primary },
-  completed:   { label: '✓ Done',      bg: '#D1FAE5',        color: Colors.success },
-  skipped:     { label: '⏭ Skipped',   bg: '#FEE2E2',        color: Colors.danger  },
+  completed:   { label: '✓ Done',        bg: '#D1FAE5',        color: Colors.success },
+  skipped:     { label: '⏭ Skipped',    bg: '#FEE2E2',        color: Colors.danger  },
 };
 
-export default function DashboardScreen() {
-  const { hobbies, activeHobbyId } = usePlanStore();
+export default function CourseDetailScreen() {
+  const { hobbies, activeHobbyId, xpTotal, streak: storedStreak } = usePlanStore();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
-  const [streak, setStreak] = useState(0);
+  const [streak, setStreak] = useState(storedStreak);
 
   useEffect(() => { updateAndGetStreak().then(setStreak).catch(() => {}); }, []);
 
   const active = activeHobbyId ? hobbies[activeHobbyId] : null;
-  const plan = active?.plan ?? null;
-  const chapterProgress = active?.chapterProgress ?? {};
+  if (!active) {
+    return (
+      <SafeAreaView style={s.safe}>
+        <View style={s.emptyWrap}>
+          <Text style={s.emptyIcon}>📚</Text>
+          <Text style={s.emptyTitle}>No Active Course</Text>
+          <Text style={s.emptySub}>Go to Learn tab to start a new hobby plan.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-  if (!plan) return <SafeAreaView style={s.safe}><Text style={s.empty}>No plan found.</Text></SafeAreaView>;
-
+  const { plan, chapterProgress } = active;
   const chapters = [...plan.chapters].sort((a, b) => a.order - b.order);
   const completed = chapters.filter(c => chapterProgress[c.id] === 'completed').length;
-  const xp = completed * 100;
   const progress = chapters.length ? completed / chapters.length : 0;
   const firstActive = chapters.find(c => {
     const st = chapterProgress[c.id] || 'pending';
@@ -41,38 +48,35 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scroll}>
 
-        {/* ── Hobby Title Row ── */}
         <View style={s.hobbyRow}>
           <View>
             <Text style={s.hobbyLabel}>LEARNING</Text>
             <Text style={s.hobbyName}>{plan.hobby}</Text>
           </View>
           <View style={s.rankBadge}>
-            <Text style={s.rankText}>{RANK(xp)}</Text>
+            <Text style={s.rankText}>{RANK(xpTotal)}</Text>
           </View>
         </View>
 
-        {/* ── Goal Card ── */}
         <View style={s.goalCard}>
           <Text style={s.sectionLabel}>🎯 YOUR GOAL</Text>
           <Text style={s.goalText}>{plan.goal}</Text>
         </View>
 
-        {/* ── Overview Card ── */}
         <View style={s.overviewCard}>
           <Text style={s.sectionLabel}>📖 OVERVIEW</Text>
           <Text style={s.overviewText}>{plan.overview}</Text>
         </View>
 
-        {/* ── Stats Row ── */}
         <View style={s.statsRow}>
           {[
-            { icon: '⚡', val: `${xp} XP`,               lbl: 'Earned'   },
+            { icon: '⚡', val: `${xpTotal} XP`,                lbl: 'Earned'   },
             { icon: '📅', val: `${plan.estimatedDurationWeeks}w`, lbl: 'Duration'  },
-            { icon: '⏱', val: `${plan.weeklyTimeHours}h`, lbl: 'Per Week' },
-            { icon: '🔥', val: `${streak}d`,              lbl: 'Streak'   },
+            { icon: '⏱', val: `${plan.weeklyTimeHours}h`,      lbl: 'Per Week' },
+            { icon: '🔥', val: `${streak}d`,                    lbl: 'Streak'   },
           ].map((st, i, arr) => (
             <React.Fragment key={st.lbl}>
               <View style={s.stat}>
@@ -85,14 +89,12 @@ export default function DashboardScreen() {
           ))}
         </View>
 
-        {/* ── XP Progress Bar ── */}
         <View style={s.xpRow}>
           <Text style={s.xpLabel}>Progress — {completed}/{chapters.length} chapters</Text>
           <Text style={s.xpVal}>{Math.round(progress * 100)}%</Text>
         </View>
         <View style={s.bar}><View style={[s.barFill, { width: `${progress * 100}%` as any }]} /></View>
 
-        {/* ── Chapter List ── */}
         <Text style={s.chapHeading}>📚 Chapters</Text>
         {chapters.map((ch, idx) => {
           const status: ChapterStatus = chapterProgress[ch.id] || 'pending';
@@ -107,20 +109,18 @@ export default function DashboardScreen() {
               onPress={() => !locked && nav.navigate('ChapterDetail', { chapter: ch })}
               activeOpacity={locked ? 1 : 0.75}
             >
-              {/* Left: order number */}
               <View style={[s.num, done && s.numDone, locked && s.numLocked]}>
                 <Text style={[s.numText, (done || locked) && s.numTextAlt]}>
                   {locked ? '🔒' : done ? '✓' : ch.order}
                 </Text>
               </View>
 
-              {/* Body */}
               <View style={s.cardBody}>
                 <Text style={[s.cardTitle, done && s.cardTitleDone]} numberOfLines={1}>{ch.title}</Text>
                 <Text style={s.cardSub} numberOfLines={2}>{ch.summary}</Text>
                 <View style={s.cardMeta}>
                   <Text style={s.metaTime}>⏱ {ch.estimatedMinutes} min</Text>
-                  <Text style={s.metaXP}>+100 XP</Text>
+                  <Text style={s.metaXP}>+50 XP</Text>
                   {label ? <View style={[s.pill, { backgroundColor: bg }]}><Text style={[s.pillText, { color }]}>{label}</Text></View> : null}
                 </View>
               </View>
@@ -148,7 +148,11 @@ export default function DashboardScreen() {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.surface },
   scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 },
-  empty: { textAlign: 'center', marginTop: 60, fontSize: 16, color: Colors.gray },
+
+  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 },
+  emptyIcon: { fontSize: 56, marginBottom: 16 },
+  emptyTitle: { fontSize: 22, fontWeight: '800', color: Colors.dark, marginBottom: 8 },
+  emptySub: { fontSize: 15, color: Colors.gray, textAlign: 'center', lineHeight: 22 },
 
   hobbyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   hobbyLabel: { fontSize: 10, fontWeight: '800', color: Colors.primary, letterSpacing: 2, marginBottom: 3 },
@@ -156,9 +160,9 @@ const s = StyleSheet.create({
   rankBadge: { backgroundColor: Colors.primaryBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: Colors.primaryLight },
   rankText: { fontSize: 13, fontWeight: '700', color: Colors.primary },
 
-  goalCard: { backgroundColor: Colors.primary, borderRadius: 18, padding: 18, marginBottom: 10, shadowColor: Colors.primary, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6 },
-  sectionLabel: { fontSize: 10, fontWeight: '800', color: Colors.primaryLight, letterSpacing: 1.5, marginBottom: 6 },
-  goalText: { fontSize: 17, fontWeight: '700', color: Colors.white, lineHeight: 25 },
+  goalCard: { backgroundColor: Colors.primaryBg, borderRadius: 18, padding: 20, marginBottom: 14, borderWidth: 1, borderColor: Colors.primaryCard },
+  sectionLabel: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 8 },
+  goalText: { fontSize: 16, fontWeight: '700', color: Colors.dark, lineHeight: 24 },
 
   overviewCard: { backgroundColor: Colors.white, borderRadius: 18, padding: 18, marginBottom: 10, borderWidth: 1, borderColor: Colors.grayLight },
   overviewText: { fontSize: 14, color: Colors.gray, lineHeight: 22 },

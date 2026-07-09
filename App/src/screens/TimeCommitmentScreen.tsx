@@ -14,20 +14,19 @@ const TIMES = [
 ];
 
 export default function TimeCommitmentScreen() {
-  const { hobby, level, setWeeklyTime, setPlan } = usePlanStore();
+  const { hobby, level, weeklyTime, addHobby } = usePlanStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   const handleSelect = async (time: number) => {
-    setWeeklyTime(time);
     setLoading(true);
     setError('');
     try {
       if (!hobby || !level) throw new Error('Missing data');
       const plan = await generatePlan({ hobby, level, weeklyTime: time });
-      setPlan(plan);
-      navigation.navigate('Dashboard');
+      addHobby(plan);
+      navigation.navigate('MainTabs');
     } catch (err: any) {
       setError(err.message || 'Failed to generate plan');
     } finally {

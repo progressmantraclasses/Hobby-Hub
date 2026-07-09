@@ -25,8 +25,8 @@ export default function ChapterCompleteScreen() {
       </View>
       
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('Dashboard')}>
-          <Text style={styles.btnText}>Back to Dashboard</Text>
+        <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('CourseDetail')}>
+          <Text style={styles.btnText}>Back to Course</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

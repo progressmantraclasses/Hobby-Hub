@@ -26,7 +26,8 @@ export default function ChapterDetailScreen() {
   const route = useRoute<RouteProp<any, 'ChapterDetail'>>();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { chapter } = route.params as { chapter: ChapterMeta };
-  const { setChapterStatus, chapterProgress } = usePlanStore();
+  const { updateChapterProgress, activeHobbyId, hobbies } = usePlanStore();
+  const chapterProgress = activeHobbyId ? hobbies[activeHobbyId]?.chapterProgress ?? {} : {};
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,8 +38,8 @@ export default function ChapterDetailScreen() {
     try {
       setLoading(true);
       setError('');
-      if (currentStatus === 'pending') {
-        setChapterStatus(chapter.id, 'in_progress');
+      if (currentStatus === 'pending' && activeHobbyId) {
+        updateChapterProgress(activeHobbyId, chapter.id, 'in_progress');
       }
       
       const content = await generateChapter(chapter.id);
