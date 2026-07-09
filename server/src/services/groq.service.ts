@@ -1,59 +1,45 @@
 import Groq from "groq-sdk";
 import { env } from "../config/env";
-import { PlanRequestSchema, PlanSchema, type Plan } from "../schemas/plan.schema";
+import { PlanRequestSchema, PlanSchema, ChapterContentSchema, type Plan, type ChapterContent } from "../schemas/plan.schema";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
 
-const SYSTEM_PROMPT = `You are a structured learning plan generator.
-Return ONLY a valid JSON object — no markdown, no extra text.
-Shape:
-{
-  "hobby": string,
-  "currentLevel": "beginner" | "intermediate",
-  "targetLevel": "intermediate" | "advanced",
-  "weeklyTimeHours": number,
-  "estimatedDurationWeeks": number,
-  "overview": string (2-3 sentences describing the learning journey),
-  "goal": string (one line: what mastery looks like at the end),
-  "chapters": [
-    {
-      "id": string (slug, e.g. "guitar-fundamentals"),
-      "title": string,
-      "order": number,
-      "summary": string (2-3 sentences: what/why/expected outcome),
-      "estimatedMinutes": number,
-      "completed": false,
-      "contentGenerated": false
-    }
-  ]
-}
-Rules:
-- chapters must have 5-10 items
-- Do NOT generate step-level content, only chapter titles/summaries/ordering
-- order starts at 1 and increments sequentially
-- estimatedDurationWeeks should account for weeklyTimeHours
-- currentLevel maps: beginner->beginner, intermediate->intermediate, advanced->intermediate
-- targetLevel is always one step above currentLevel`;
+const PLAN_PROMPT = `You are a structured learning plan generator.
+Return ONLY valid JSON — no markdown, no extra text.
+Shape: { hobby, currentLevel, targetLevel, weeklyTimeHours, estimatedDurationWeeks, overview (2-3 sentences), goal (1 line), chapters: [{ id (slug), title, order, summary (2-3 sentences), estimatedMinutes, completed: false, contentGenerated: false }] }
+Rules: 5-10 chapters, order starts at 1, do NOT generate step-level content here.`;
 
-export async function generatePlan(input: unknown): Promise<Plan> {
-  const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
+const CHAPTER_PROMPT = `You are a structured learning step generator.
+Return ONLY valid JSON — no markdown, no extra text.
+Generate exactly 7 learning steps in this fixed order:
+1. summary: { type:"summary", whatYouWillLearn:string[], keyConcepts:string[], expectedOutcome:string }
+2. video: { type:"video", searchQueries:string[] (1-2 entries, search intent only — no URLs) }
+3. reflection: { type:"reflection", question:string, format:"mcq"|"shortAnswer"|"trueFalse", options?:string[], correctAnswer:string }
+4. reading: { type:"reading", content:string (500-800 words), tips:string[], commonMistakes:string[], imagePrompts:string[] }
+5. interactive: choose activityType based on content — flashcard (vocab/recall), match (pairs), drag_drop (sequences/ordering), identify (spotting), scenario (decision-making). Shape varies: flashcard->{ cards:[{front,back}] }, match->{ pairs:[{term,match}] }, drag_drop->{ items:[],correctOrder:[] }, identify->{ items:[{label,correct}] }, scenario->{ situation,choices:[],bestChoice }. The outer object must include activityType at root alongside the data fields.
+6. quiz: { type:"quiz", passingScore:70, questions:[5-10 {question,type:"mcq"|"trueFalse"|"fillBlank",options?:string[],correctAnswer}] }
+7. practice: { type:"practice", task:string, expectedOutcome:string, suggestedMinutes:number }
+Return: { steps: [summary, video, reflection, reading, interactive, quiz, practice] }`;
 
-  const currentLevel = level === "advanced" ? "intermediate" : level as "beginner" | "intermediate";
-  const targetLevel = currentLevel === "beginner" ? "intermediate" : "advanced";
-
-  const completion = await groq.chat.completions.create({
+async function callGroq(system: string, user: string) {
+  const res = await groq.chat.completions.create({
     model: "llama-3.1-8b-instant",
-    messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      {
-        role: "user",
-        content: `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime} hours`,
-      },
-    ],
+    messages: [{ role: "system", content: system }, { role: "user", content: user }],
     response_format: { type: "json_object" },
     temperature: 0.7,
   });
+  return JSON.parse(res.choices[0]?.message?.content ?? "{}");
+}
 
-  const raw = completion.choices[0]?.message?.content ?? "";
-  return PlanSchema.parse(JSON.parse(raw));
+export async function generatePlan(input: unknown): Promise<Plan> {
+  const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
+  const currentLevel = level === "advanced" ? "intermediate" : level as "beginner" | "intermediate";
+  const targetLevel  = currentLevel === "beginner" ? "intermediate" : "advanced";
+  const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
+  return PlanSchema.parse(raw);
+}
+
+export async function generateChapterContent(hobby: string, level: string, title: string, summary: string): Promise<ChapterContent> {
+  const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
+  return ChapterContentSchema.parse(raw);
 }
