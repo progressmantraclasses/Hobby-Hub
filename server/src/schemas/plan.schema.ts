@@ -39,10 +39,10 @@ const InteractiveDataSchema = z.discriminatedUnion("activityType", [
 
 export const SummaryStepSchema     = z.object({ type: z.literal("summary"),     whatYouWillLearn: z.array(z.string()), keyConcepts: z.array(z.string()), expectedOutcome: z.string() });
 export const VideoStepSchema       = z.object({ type: z.literal("video"),       searchQueries: z.array(z.string()).min(1).max(2) });
-export const ReflectionStepSchema  = z.object({ type: z.literal("reflection"),  question: z.string(), format: z.enum(["mcq", "shortAnswer", "trueFalse"]), options: z.array(z.string()).optional(), correctAnswer: z.string() });
+export const ReflectionStepSchema  = z.object({ type: z.literal("reflection"),  question: z.string(), format: z.enum(["mcq", "shortAnswer", "trueFalse"]), options: z.array(z.string()).optional(), correctAnswer: z.string().optional() });
 export const ReadingStepSchema     = z.object({ type: z.literal("reading"),     content: z.string(), tips: z.array(z.string()), commonMistakes: z.array(z.string()), imagePrompts: z.array(z.string()) });
-export const InteractiveStepSchema = z.object({ type: z.literal("interactive") }).and(InteractiveDataSchema);
-export const QuizStepSchema        = z.object({ type: z.literal("quiz"),        passingScore: z.literal(70), questions: z.array(z.object({ question: z.string(), type: z.enum(["mcq", "trueFalse", "fillBlank"]), options: z.array(z.string()).optional(), correctAnswer: z.string() })).min(5).max(10) });
+export const InteractiveStepSchema = z.object({ type: z.literal("interactive").catch("interactive") }).and(InteractiveDataSchema);
+export const QuizStepSchema        = z.object({ type: z.literal("quiz"),        passingScore: z.literal(70), questions: z.array(z.object({ question: z.string(), type: z.enum(["mcq", "trueFalse", "fillBlank", "shortAnswer"]), options: z.array(z.string()).optional(), correctAnswer: z.string() })).max(10) });
 export const PracticeStepSchema    = z.object({ type: z.literal("practice"),    task: z.string(), expectedOutcome: z.string(), suggestedMinutes: z.number().int().positive() });
 
 export const ChapterContentSchema = z.object({

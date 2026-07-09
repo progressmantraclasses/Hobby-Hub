@@ -5,7 +5,7 @@ import { ChapterContentSchema } from "../schemas/plan.schema";
 import { generateChapterContent } from "../services/groq.service";
 
 export async function chapterGenerateController(req: Request, res: Response, next: NextFunction) {
-  const { chapterId } = req.params;
+  const chapterId = req.params.chapterId as string;
 
   try {
     const planDoc = await Plan.findOne({ "chapters.id": chapterId });
@@ -20,7 +20,7 @@ export async function chapterGenerateController(req: Request, res: Response, nex
     }
 
     const content = await generateChapterContent(
-      planDoc.hobby, planDoc.currentLevel, chapter.title, chapter.summary
+      planDoc.hobby as string, planDoc.currentLevel as string, chapter.title as string, chapter.summary as string
     );
 
     await Plan.updateOne(

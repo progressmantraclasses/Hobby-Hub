@@ -1,4 +1,5 @@
 import Groq from "groq-sdk";
+import { z } from "zod";
 import { env } from "../config/env";
 import { PlanRequestSchema, PlanSchema, ChapterContentSchema, type Plan, type ChapterContent } from "../schemas/plan.schema";
 
@@ -16,8 +17,8 @@ Generate exactly 7 learning steps in this fixed order:
 2. video: { type:"video", searchQueries:string[] (1-2 entries, search intent only — no URLs) }
 3. reflection: { type:"reflection", question:string, format:"mcq"|"shortAnswer"|"trueFalse", options?:string[], correctAnswer:string }
 4. reading: { type:"reading", content:string (500-800 words), tips:string[], commonMistakes:string[], imagePrompts:string[] }
-5. interactive: choose activityType based on content — flashcard (vocab/recall), match (pairs), drag_drop (sequences/ordering), identify (spotting), scenario (decision-making). Shape varies: flashcard->{ cards:[{front,back}] }, match->{ pairs:[{term,match}] }, drag_drop->{ items:[],correctOrder:[] }, identify->{ items:[{label,correct}] }, scenario->{ situation,choices:[],bestChoice }. The outer object must include activityType at root alongside the data fields.
-6. quiz: { type:"quiz", passingScore:70, questions:[5-10 {question,type:"mcq"|"trueFalse"|"fillBlank",options?:string[],correctAnswer}] }
+5. interactive: { type:"interactive", activityType:"flashcard"|"match"|"drag_drop"|"identify"|"scenario", ...data }. The data MUST be flat alongside type and activityType (DO NOT nest inside another object). Shape varies: flashcard->{ cards:[{front,back}] }, match->{ pairs:[{term,match}] }, drag_drop->{ items:[],correctOrder:[] }, identify->{ items:[{label,correct}] }, scenario->{ situation,choices:[],bestChoice }.
+6. quiz: { type:"quiz", passingScore:70, questions:[5-10 {question,type:"mcq"|"trueFalse"|"fillBlank"|"shortAnswer",options?:string[],correctAnswer}] }
 7. practice: { type:"practice", task:string, expectedOutcome:string, suggestedMinutes:number }
 Return: { steps: [summary, video, reflection, reading, interactive, quiz, practice] }`;
 
@@ -41,5 +42,13 @@ export async function generatePlan(input: unknown): Promise<Plan> {
 
 export async function generateChapterContent(hobby: string, level: string, title: string, summary: string): Promise<ChapterContent> {
   const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
-  return ChapterContentSchema.parse(raw);
+  try {
+    return ChapterContentSchema.parse(raw);
+  } catch (error) {
+    console.error("Failed to parse ChapterContent. Raw output:", JSON.stringify(raw, null, 2));
+    if (error instanceof z.ZodError) {
+      console.error("Zod Validation Errors:", JSON.stringify(error.flatten(), null, 2));
+    }
+    throw error;
+  }
 }

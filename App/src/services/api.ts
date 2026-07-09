@@ -1,4 +1,4 @@
-import { PlanRequest, Plan, PlanSchema } from '../schemas/plan.schema';
+import { PlanRequest, Plan, PlanSchema, ChapterContentSchema, ChapterContent } from '../schemas/plan.schema';
 import { Platform } from 'react-native';
 
 const BASE_URL = Platform.OS === 'android' ? 'http://192.168.1.34:5000/api' : 'http://localhost:5000/api';
@@ -20,3 +20,24 @@ export const generatePlan = async (request: PlanRequest): Promise<Plan> => {
   if (!parsed.success) throw new Error('Received invalid data from server');
   return parsed.data;
 };
+
+export const generateChapter = async (chapterId: string): Promise<ChapterContent> => {
+  const response = await fetch(`${BASE_URL}/chapters/${chapterId}/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || err.error || 'Failed to generate chapter content');
+  }
+
+  const data = await response.json();
+  const parsed = ChapterContentSchema.safeParse(data);
+  if (!parsed.success) {
+    console.error("Parse error on chapter data:", parsed.error);
+    throw new Error('Received invalid chapter data from server');
+  }
+  return parsed.data;
+};
+

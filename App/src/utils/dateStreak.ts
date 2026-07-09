@@ -13,6 +13,7 @@ export const updateAndGetStreak = async (): Promise<number> => {
   const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
   streak = lastDate === yesterday ? streak + 1 : 1;
 
-  await AsyncStorage.multiSet([[LAST_DATE_KEY, today], [STREAK_KEY, streak.toString()]]);
+  await AsyncStorage.setItem(LAST_DATE_KEY, today);
+  await AsyncStorage.setItem(STREAK_KEY, streak.toString());
   return streak;
 };

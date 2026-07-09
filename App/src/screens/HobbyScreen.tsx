@@ -22,7 +22,7 @@ export default function HobbyScreen() {
       setHobby(result.data);
       navigation.navigate('Level');
     } else {
-      setError(result.error.errors[0].message);
+      setError(result.error.issues[0].message);
     }
   };
 
