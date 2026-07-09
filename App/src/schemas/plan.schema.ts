@@ -38,7 +38,7 @@ const InteractiveDataSchema = z.discriminatedUnion("activityType", [
 ]);
 
 export const SummaryStepSchema     = z.object({ type: z.literal("summary"),     whatYouWillLearn: z.array(z.string()), keyConcepts: z.array(z.string()), expectedOutcome: z.string() });
-export const VideoStepSchema       = z.object({ type: z.literal("video"),       searchQueries: z.array(z.string()).min(1).max(2) });
+export const VideoStepSchema       = z.object({ type: z.literal("video"),       searchQueries: z.array(z.string()).min(1).max(2), video: z.any().optional(), videoSummary: z.string().optional() });
 export const ReflectionStepSchema  = z.object({ type: z.literal("reflection"),  question: z.string(), format: z.enum(["mcq", "shortAnswer", "trueFalse"]), options: z.array(z.string()).optional(), correctAnswer: z.string().optional() });
 export const ReadingStepSchema     = z.object({ type: z.literal("reading"),     content: z.string(), tips: z.array(z.string()), commonMistakes: z.array(z.string()), imagePrompts: z.array(z.string()) });
 export const InteractiveStepSchema = z.object({ type: z.literal("interactive").catch("interactive") }).and(InteractiveDataSchema);

@@ -3,6 +3,8 @@ import { ZodError } from "zod";
 import { Plan } from "../models/Plan.model";
 import { ChapterContentSchema } from "../schemas/plan.schema";
 import { generateChapterContent } from "../services/groq.service";
+import { searchVideos } from "../services/youtube.service";
+import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
 
 export async function chapterGenerateController(req: Request, res: Response, next: NextFunction) {
   const chapterId = req.params.chapterId as string;
@@ -22,6 +24,23 @@ export async function chapterGenerateController(req: Request, res: Response, nex
     const content = await generateChapterContent(
       planDoc.hobby as string, planDoc.currentLevel as string, chapter.title as string, chapter.summary as string
     );
+
+    const videoStep = content.steps.find((s: any) => s.type === "video") as any;
+    if (videoStep && videoStep.searchQueries?.length) {
+      try {
+        const query = videoStep.searchQueries[0];
+        
+        const videos = await searchVideos(query);
+        const candidates = filterCandidates(videos);
+        const result = await rankWithLLM(candidates, query);
+        if (result) {
+          videoStep.video = result.video;
+          videoStep.videoSummary = result.justification;
+        }
+      } catch (e) {
+        console.error("Failed to fetch video:", e);
+      }
+    }
 
     await Plan.updateOne(
       { "chapters.id": chapterId },
