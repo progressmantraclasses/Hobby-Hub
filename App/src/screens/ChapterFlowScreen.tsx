@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChapterContent, ChapterMeta } from '../schemas/plan.schema';
@@ -33,7 +34,8 @@ export default function ChapterFlowScreen() {
   const progress = (currentStepIndex + 1) / steps.length;
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       {/* Header Progress */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
@@ -56,15 +58,6 @@ export default function ChapterFlowScreen() {
           <Text style={styles.errorText}>No renderer for {currentStep.type}</Text>
         )}
       </ScrollView>
-
-      {/* Default Continue button if the component doesn't render its own */}
-      {currentStep.type !== 'quiz' && currentStep.type !== 'reflection' && currentStep.type !== 'interactive' && (
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.continueBtn} onPress={handleNext}>
-            <Text style={styles.continueBtnText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
-      )}
     </SafeAreaView>
   );
 }
