@@ -69,14 +69,14 @@ const s = StyleSheet.create({
   sub: { fontSize: 15, color: Colors.gray },
   empty: { paddingVertical: 40, alignItems: 'center' },
   emptyText: { fontSize: 16, color: Colors.gray, marginBottom: 16 },
-  
+
   card: { backgroundColor: Colors.white, borderRadius: 16, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: Colors.primary, shadowOpacity: 0.05, shadowRadius: 10, elevation: 3 },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   cardInfo: { flex: 1, paddingRight: 16 },
   cardTitle: { fontSize: 20, fontWeight: '800', color: Colors.dark, marginBottom: 4 },
   cardLevel: { fontSize: 12, fontWeight: '700', color: Colors.primary, textTransform: 'uppercase', letterSpacing: 1 },
   cardGoal: { fontSize: 14, color: Colors.gray, lineHeight: 20 },
-  
+
   progressCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.primaryBg, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.primaryLight },
   progressText: { fontSize: 12, fontWeight: '800', color: Colors.primary },
 

@@ -18,7 +18,7 @@ const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: st
 };
 
 export default function CourseDetailScreen() {
-  const { hobbies, activeHobbyId, xpTotal, streak: storedStreak } = usePlanStore();
+  const { hobbies, activeHobbyId, streak: storedStreak } = usePlanStore();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
   const [streak, setStreak] = useState(storedStreak);
 
@@ -46,6 +46,8 @@ export default function CourseDetailScreen() {
     return st === 'pending' || st === 'in_progress';
   });
 
+  const courseXp = completed * 50;
+
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -57,7 +59,7 @@ export default function CourseDetailScreen() {
             <Text style={s.hobbyName}>{plan.hobby}</Text>
           </View>
           <View style={s.rankBadge}>
-            <Text style={s.rankText}>{RANK(xpTotal)}</Text>
+            <Text style={s.rankText}>{RANK(courseXp)}</Text>
           </View>
         </View>
 
@@ -73,7 +75,7 @@ export default function CourseDetailScreen() {
 
         <View style={s.statsRow}>
           {[
-            { icon: '⚡', val: `${xpTotal} XP`,                lbl: 'Earned'   },
+            { icon: '⚡', val: `${courseXp} XP`,                lbl: 'Earned'   },
             { icon: '📅', val: `${plan.estimatedDurationWeeks}w`, lbl: 'Duration'  },
             { icon: '⏱', val: `${plan.weeklyTimeHours}h`,      lbl: 'Per Week' },
             { icon: '🔥', val: `${streak}d`,                    lbl: 'Streak'   },

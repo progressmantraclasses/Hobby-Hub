@@ -5,7 +5,6 @@ import { Plan } from '../schemas/plan.schema';
 
 export type ChapterStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
-// v2: multi-hobby. Old single-plan data cleared on version mismatch (logged below).
 const STORE_VERSION = 2;
 
 interface HobbyProgress {
@@ -19,9 +18,8 @@ interface PlanState {
   activeHobbyId: string | null;
   xpTotal: number;
   streak: number;
+  longestStreak: number;
   lastActiveDate: string;
-
-  // Onboarding temp state
   hobby?: string;
   level?: 'beginner' | 'intermediate' | 'advanced';
   weeklyTime?: number;
@@ -42,6 +40,7 @@ const initialState = {
   activeHobbyId: null,
   xpTotal: 0,
   streak: 0,
+  longestStreak: 0,
   lastActiveDate: '',
   hobby: undefined,
   level: undefined,
@@ -57,10 +56,7 @@ export const usePlanStore = create<PlanState>()(
       setWeeklyTime: (weeklyTime) => set({ weeklyTime }),
       addHobby: (plan) =>
         set((state) => ({
-          hobbies: {
-            ...state.hobbies,
-            [plan.hobby]: { plan, chapterProgress: {} },
-          },
+          hobbies: { ...state.hobbies, [plan.hobby]: { plan, chapterProgress: {} } },
           activeHobbyId: plan.hobby,
         })),
       setActiveHobby: (hobbyId) => set({ activeHobbyId: hobbyId }),
@@ -70,14 +66,15 @@ export const usePlanStore = create<PlanState>()(
             ...state.hobbies,
             [hobbyId]: {
               ...state.hobbies[hobbyId],
-              chapterProgress: {
-                ...state.hobbies[hobbyId]?.chapterProgress,
-                [chapterId]: status,
-              },
+              chapterProgress: { ...state.hobbies[hobbyId]?.chapterProgress, [chapterId]: status },
             },
           },
         })),
-      addXp: (amount) => set((state) => ({ xpTotal: state.xpTotal + amount })),
+      addXp: (amount) =>
+        set((state) => {
+          const next = state.xpTotal + amount;
+          return { xpTotal: next };
+        }),
       reset: () => set(initialState),
     }),
     {
@@ -85,7 +82,6 @@ export const usePlanStore = create<PlanState>()(
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
         if (state && state.version !== STORE_VERSION) {
-          // Version mismatch: clear legacy data
           console.log('[planStore] Version mismatch — clearing old storage');
           AsyncStorage.removeItem('plan-storage');
           Object.assign(state, initialState);
@@ -94,3 +90,4 @@ export const usePlanStore = create<PlanState>()(
     }
   )
 );
+

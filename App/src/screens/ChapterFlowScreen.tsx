@@ -25,12 +25,16 @@ export default function ChapterFlowScreen() {
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
-      // Finished
       if (activeHobbyId) {
+        const { xpTotal } = usePlanStore.getState();
+        const prevLevel = Math.floor(xpTotal / 200);
         updateChapterProgress(activeHobbyId, chapter.id, 'completed');
         addXp(50);
+        const newLevel = Math.floor((xpTotal + 50) / 200);
+        navigation.replace('ChapterComplete', { chapter, levelUp: newLevel > prevLevel, newLevel: newLevel + 1 });
+      } else {
+        navigation.replace('ChapterComplete', { chapter });
       }
-      navigation.replace('ChapterComplete', { chapter });
     }
   };
 
