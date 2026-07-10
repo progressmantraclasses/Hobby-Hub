@@ -15,6 +15,7 @@ export default function TimeCommitmentScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [loadingText, setLoadingText] = useState('Thinking...');
 
   useEffect(() => {
     if (loading) {
@@ -27,6 +28,20 @@ export default function TimeCommitmentScreen() {
     } else {
       pulseAnim.setValue(1);
     }
+  }, [loading]);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (loading) {
+      const texts = ['Thinking...', 'Preparing...', 'Customizing...', 'Generating...'];
+      let i = 0;
+      setLoadingText(texts[i]);
+      interval = setInterval(() => {
+        i = (i + 1) % texts.length;
+        setLoadingText(texts[i]);
+      }, 1500);
+    }
+    return () => clearInterval(interval);
   }, [loading]);
 
   const handleSelect = async () => {
@@ -56,7 +71,7 @@ export default function TimeCommitmentScreen() {
           <Animated.View style={[styles.loadingCircle, { transform: [{ scale: pulseAnim }] }]}>
             <Text style={styles.loadingIcon}>✨</Text>
           </Animated.View>
-          <Text style={styles.loadingTitle}>Crafting Your Journey...</Text>
+          <Text style={styles.loadingTitle}>{loadingText}</Text>
           <Text style={styles.loadingSub}>Analyzing optimal learning paths for {hobby}</Text>
         </View>
       </SafeAreaView>

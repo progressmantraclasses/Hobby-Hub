@@ -22,6 +22,7 @@ export default function ChapterFlowScreen() {
   const [error, setError] = useState('');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [loadingText, setLoadingText] = useState('Thinking...');
 
   useEffect(() => {
     if (loading) {
@@ -31,7 +32,23 @@ export default function ChapterFlowScreen() {
           Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true })
         ])
       ).start();
+    } else {
+      pulseAnim.setValue(1);
     }
+  }, [loading]);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (loading) {
+      const texts = ['Thinking...', 'Preparing...', 'Customizing...', 'Generating...'];
+      let i = 0;
+      setLoadingText(texts[i]);
+      interval = setInterval(() => {
+        i = (i + 1) % texts.length;
+        setLoadingText(texts[i]);
+      }, 1500);
+    }
+    return () => clearInterval(interval);
   }, [loading]);
 
   const fetchContent = async () => {
@@ -40,7 +57,7 @@ export default function ChapterFlowScreen() {
       setError('');
       const data = await generateChapter(chapter.id);
       setContent(data);
-      
+
       // Update progress to in_progress if currently pending
       if (activeHobbyId) {
         const currentStatus = hobbies[activeHobbyId]?.chapterProgress[chapter.id] || 'pending';
@@ -77,7 +94,7 @@ export default function ChapterFlowScreen() {
           <Animated.View style={[styles.loadingCircle, { transform: [{ scale: pulseAnim }] }]}>
             <Text style={styles.loadingIcon}>✨</Text>
           </Animated.View>
-          <Text style={styles.loadingTitle}>Summoning Chapter...</Text>
+          <Text style={styles.loadingTitle}>{loadingText}</Text>
           <Text style={styles.loadingSub}>Crafting interactive tasks for "{chapter.title}"</Text>
         </View>
       </SafeAreaView>
@@ -150,11 +167,11 @@ export default function ChapterFlowScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.surface },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 12, 
-    paddingHorizontal: 20, 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.grayLight,

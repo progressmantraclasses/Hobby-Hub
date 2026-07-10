@@ -1,6 +1,6 @@
 import { Plan } from "../models/Plan.model";
 
-function cosineSimilarity(vecA: number[], vecB: number[]): number {
+export function cosineSimilarity(vecA: number[], vecB: number[]): number {
   const dotProduct = vecA.reduce((sum, val, i) => sum + val * (vecB[i] ?? 0), 0);
   const magA = Math.sqrt(vecA.reduce((sum, val) => sum + val * val, 0));
   const magB = Math.sqrt(vecB.reduce((sum, val) => sum + val * val, 0));

@@ -1,7 +1,7 @@
 import { PlanRequest, Plan, PlanSchema, ChapterContentSchema, ChapterContent } from '../schemas/plan.schema';
 import { Platform } from 'react-native';
 
-const BASE_URL = Platform.OS === 'android' ? 'http://192.168.1.34:5000/api' : 'http://localhost:5000/api';
+const BASE_URL = Platform.OS === 'android' ? 'https://apis.codespirit.in/api' : 'https://apis.codespirit.in/api';
 
 export const generatePlan = async (request: PlanRequest): Promise<Plan> => {
   const response = await fetch(`${BASE_URL}/generate-plan`, {

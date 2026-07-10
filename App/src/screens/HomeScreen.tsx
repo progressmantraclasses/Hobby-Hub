@@ -32,12 +32,23 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     updateStreak();
+    const currentHobby = activeHobbyId ? hobbies[activeHobbyId] : Object.values(hobbies)[0];
+    if (currentHobby) {
+      const isComplete = hobbyCompletion(currentHobby.chapterProgress, currentHobby.plan.chapters) === 1;
+      if (isComplete) {
+        const incomplete = Object.values(hobbies).find(h => hobbyCompletion(h.chapterProgress, h.plan.chapters) < 1);
+        if (incomplete) {
+          setActiveHobby(incomplete.plan.hobby);
+        }
+      }
+    }
   }, []);
 
   const level = getLevel(xpTotal);
   const xpProgress = getXpProgress(xpTotal);
   const xpToNext = XP_PER_LEVEL - (xpTotal % XP_PER_LEVEL);
   const hobbyList = Object.values(hobbies);
+  const incompleteHobbies = hobbyList.filter(h => hobbyCompletion(h.chapterProgress, h.plan.chapters) < 1);
   const active = activeHobbyId ? hobbies[activeHobbyId] : hobbyList[0] ?? null;
   const nextChapter = active
     ? [...active.plan.chapters].sort((a, b) => a.order - b.order).find(c => {
@@ -63,7 +74,7 @@ export default function HomeScreen() {
           </View>
           <View style={s.streakBadge}>
             <Text style={s.streakFire}>🔥</Text>
-            <Text style={s.streakNum}>{streak}</Text>
+            <Text style={s.streakNum}>{streak}d</Text>
           </View>
         </View>
 
@@ -134,11 +145,11 @@ export default function HomeScreen() {
               </View>
             ) : null}
 
-            {hobbyList.length > 1 && (
+            {incompleteHobbies.length > 1 && (
               <View>
                 <Text style={s.sectionTitle}>Your Hobbies</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.hobbyRow}>
-                  {hobbyList.map(({ plan, chapterProgress }) => {
+                  {incompleteHobbies.map(({ plan, chapterProgress }) => {
                     const pct = hobbyCompletion(chapterProgress, plan.chapters);
                     const isActive = activeHobbyId === plan.hobby;
                     return (
