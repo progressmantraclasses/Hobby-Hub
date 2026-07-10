@@ -28,7 +28,12 @@ const SUGGESTED_HOBBIES = [
 
 export default function HomeScreen() {
   const nav = useNavigation<NativeStackNavigationProp<any>>();
-  const { xpTotal, streak, hobbies, activeHobbyId, setActiveHobby, setHobby } = usePlanStore();
+  const { xpTotal, streak, hobbies, activeHobbyId, setActiveHobby, setHobby, userName, updateStreak } = usePlanStore();
+
+  React.useEffect(() => {
+    updateStreak();
+  }, []);
+
   const level = getLevel(xpTotal);
   const xpProgress = getXpProgress(xpTotal);
   const xpToNext = XP_PER_LEVEL - (xpTotal % XP_PER_LEVEL);
@@ -57,7 +62,7 @@ export default function HomeScreen() {
         <View style={s.topRow}>
           <View>
             <Text style={s.greet}>{greeting()} 👋</Text>
-            <Text style={s.sub}>Ready to keep learning?</Text>
+            <Text style={s.username}>{userName}</Text>
           </View>
           <View style={s.streakBadge}>
             <Text style={s.streakFire}>🔥</Text>
@@ -173,7 +178,7 @@ const s = StyleSheet.create({
 
   topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   greet: { fontSize: 22, fontWeight: '800', color: Colors.dark },
-  sub: { fontSize: 14, color: Colors.gray, marginTop: 2 },
+  username: { fontSize: 16, fontWeight: '700', color: Colors.primary, marginTop: 2 },
   streakBadge: { backgroundColor: '#FEF3C7', borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', borderWidth: 1.5, borderColor: '#FDE68A' },
   streakFire: { fontSize: 18 },
   streakNum: { fontSize: 16, fontWeight: '900', color: '#92400E' },

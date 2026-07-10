@@ -18,11 +18,10 @@ const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: st
 };
 
 export default function CourseDetailScreen() {
-  const { hobbies, activeHobbyId, streak: storedStreak } = usePlanStore();
+  const { hobbies, activeHobbyId, streak, updateStreak } = usePlanStore();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
-  const [streak, setStreak] = useState(storedStreak);
 
-  useEffect(() => { updateAndGetStreak().then(setStreak).catch(() => {}); }, []);
+  useEffect(() => { updateStreak(); }, []);
 
   const active = activeHobbyId ? hobbies[activeHobbyId] : null;
   if (!active) {

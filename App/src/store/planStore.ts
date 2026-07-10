@@ -33,6 +33,7 @@ interface PlanState {
   setActiveHobby: (hobbyId: string) => void;
   updateChapterProgress: (hobbyId: string, chapterId: string, status: ChapterStatus) => void;
   addXp: (amount: number) => void;
+  updateStreak: () => void;
   reset: () => void;
 }
 
@@ -78,6 +79,34 @@ export const usePlanStore = create<PlanState>()(
         set((state) => {
           const next = state.xpTotal + amount;
           return { xpTotal: next };
+        }),
+      updateStreak: () =>
+        set((state) => {
+          const today = new Date().toISOString().split('T')[0];
+          const lastDate = state.lastActiveDate;
+          let currentStreak = state.streak;
+          let maxStreak = state.longestStreak || 0;
+
+          if (lastDate === today) {
+            return {};
+          }
+
+          const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+          if (lastDate === yesterday) {
+            currentStreak += 1;
+          } else {
+            currentStreak = 1;
+          }
+
+          if (currentStreak > maxStreak) {
+            maxStreak = currentStreak;
+          }
+
+          return {
+            streak: currentStreak,
+            longestStreak: maxStreak,
+            lastActiveDate: today,
+          };
         }),
       reset: () => set(initialState),
     }),

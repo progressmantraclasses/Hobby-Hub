@@ -52,6 +52,7 @@ function MainTabs() {
         },
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.gray,
+        tabBarHideOnKeyboard: true,
         tabBarStyle: { borderTopColor: Colors.grayLight, backgroundColor: Colors.white },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
       })}
