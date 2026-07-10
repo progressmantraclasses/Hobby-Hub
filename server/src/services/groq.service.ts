@@ -37,19 +37,43 @@ export async function generatePlan(input: unknown): Promise<Plan> {
   const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
   const currentLevel = level === "advanced" ? "intermediate" : level as "beginner" | "intermediate";
   const targetLevel  = currentLevel === "beginner" ? "intermediate" : "advanced";
-  const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
-  return PlanSchema.parse(raw);
+  
+  const MAX_RETRIES = 3;
+  let attempts = 0;
+
+  while (attempts < MAX_RETRIES) {
+    try {
+      const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
+      return PlanSchema.parse(raw);
+    } catch (error) {
+      attempts++;
+      console.warn(`\n⚠️ [Plan Generation] AI returned invalid data. Retrying... (Attempt ${attempts} of ${MAX_RETRIES})`);
+      if (attempts >= MAX_RETRIES) {
+        throw new Error("Failed to generate a valid plan after multiple attempts. Please try again.");
+      }
+    }
+  }
+  throw new Error("Failed to generate plan");
 }
 
 export async function generateChapterContent(hobby: string, level: string, title: string, summary: string): Promise<ChapterContent> {
-  const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
-  try {
-    return ChapterContentSchema.parse(raw);
-  } catch (error) {
-    console.error("Failed to parse ChapterContent. Raw output:", JSON.stringify(raw, null, 2));
-    if (error instanceof z.ZodError) {
-      console.error("Zod Validation Errors:", JSON.stringify(error.flatten(), null, 2));
+  const MAX_RETRIES = 3;
+  let attempts = 0;
+
+  while (attempts < MAX_RETRIES) {
+    try {
+      const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
+      return ChapterContentSchema.parse(raw);
+    } catch (error) {
+      attempts++;
+      console.warn(`\n⚠️ [Chapter Generation] AI returned invalid data. Retrying... (Attempt ${attempts} of ${MAX_RETRIES})`);
+      if (attempts >= MAX_RETRIES) {
+        if (error instanceof z.ZodError) {
+          console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
+        }
+        throw new Error("Failed to generate valid chapter content after multiple attempts.");
+      }
     }
-    throw error;
   }
+  throw new Error("Failed to generate chapter content");
 }
