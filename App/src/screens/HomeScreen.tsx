@@ -103,13 +103,20 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={s.startCard}
               onPress={() => nav.navigate('Learn', { screen: 'Hobby' })}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
-              <View style={s.startLeft}>
-                <Text style={s.startTitle}>Something else?</Text>
-                <Text style={s.startSub}>Type your own custom hobby to learn.</Text>
+              <View style={s.questBadge}>
+                <Text style={s.questBadgeText}>CUSTOM QUEST</Text>
               </View>
-              <Text style={s.startArrow}>→</Text>
+              <View style={s.startContent}>
+                <View style={s.startLeft}>
+                  <Text style={s.startTitle}>Create Custom Hobby 💡</Text>
+                  <Text style={s.startSub}>Type your own custom hobby and generate a customized roadmap.</Text>
+                </View>
+                <View style={s.questIconContainer}>
+                  <Text style={s.questIcon}>⚡</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           </View>
         ) : (
@@ -157,13 +164,20 @@ export default function HomeScreen() {
             <TouchableOpacity
               style={s.startCard}
               onPress={() => nav.navigate('Learn', { screen: 'Hobby' })}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
-              <View style={s.startLeft}>
-                <Text style={s.startTitle}>Learn a new hobby</Text>
-                <Text style={s.startSub}>What's your level? Pick a skill and start.</Text>
+              <View style={s.questBadge}>
+                <Text style={s.questBadgeText}>NEW QUEST</Text>
               </View>
-              <Text style={s.startArrow}>→</Text>
+              <View style={s.startContent}>
+                <View style={s.startLeft}>
+                  <Text style={s.startTitle}>Unlock a New Hobby 🎯</Text>
+                  <Text style={s.startSub}>Pick another skill, set your commitment, and start leveling up.</Text>
+                </View>
+                <View style={s.questIconContainer}>
+                  <Text style={s.questIcon}>🚀</Text>
+                </View>
+              </View>
             </TouchableOpacity>
           </>
         )}
@@ -206,11 +220,56 @@ const s = StyleSheet.create({
   hobbyMiniName: { fontSize: 11, fontWeight: '700', color: Colors.dark, marginBottom: 4, textAlign: 'center' },
   hobbyMiniPct: { fontSize: 12, fontWeight: '800', color: Colors.primary },
 
-  startCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.white, borderRadius: 18, padding: 20, marginTop: 20, marginBottom: 8, borderWidth: 1.5, borderColor: Colors.primaryLight },
-  startLeft: { flex: 1, paddingRight: 12 },
-  startTitle: { fontSize: 16, fontWeight: '800', color: Colors.dark, marginBottom: 4 },
+  startCard: {
+    backgroundColor: Colors.white,
+    borderRadius: 20,
+    padding: 20,
+    marginTop: 20,
+    marginBottom: 8,
+    borderWidth: 1.5,
+    borderColor: Colors.primaryLight,
+    shadowColor: Colors.primary,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  questBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderBottomLeftRadius: 12,
+  },
+  questBadgeText: {
+    color: Colors.white,
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  startContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 6, // Prevents badge overlap
+  },
+  startLeft: { flex: 1, paddingRight: 16 },
+  startTitle: { fontSize: 17, fontWeight: '900', color: Colors.dark, marginBottom: 5 },
   startSub: { fontSize: 13, color: Colors.gray, lineHeight: 18 },
-  startArrow: { fontSize: 22, color: Colors.primary, fontWeight: '700' },
+  questIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.primaryBg,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: Colors.primaryLight,
+  },
+  questIcon: { fontSize: 24 },
 
   emptyState: { marginTop: 10 },
   suggestionGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
