@@ -1,12 +1,22 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
 
+const HOBBY_EMOJIS: Record<string, string> = {
+  default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
+  drawing: '🎨', painting: '🎨', yoga: '🧘', cooking: '🍳', reading: '📖',
+  writing: '✍️', photography: '📷', chess: '♟️', dancing: '💃', singing: '🎤',
+};
+const hobbyEmoji = (h: string) => HOBBY_EMOJIS[h.toLowerCase()] ?? HOBBY_EMOJIS.default;
+
 export default function ProfileScreen() {
-  const { xpTotal, streak, longestStreak, hobbies } = usePlanStore();
+  const { xpTotal, streak, longestStreak, hobbies, userName, setUserName } = usePlanStore();
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState(userName);
+
   const level = getLevel(xpTotal);
   const xpProgress = getXpProgress(xpTotal);
   const hobbyList = Object.values(hobbies);
@@ -14,26 +24,65 @@ export default function ProfileScreen() {
   const totalChaptersDone = hobbyList.reduce((acc, { plan, chapterProgress }) =>
     acc + plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length, 0);
   const hasFullyMastered = hobbyList.some(({ plan, chapterProgress }) =>
-    plan.chapters.every(c => chapterProgress[c.id] === 'completed'));
+    plan.chapters.length > 0 && plan.chapters.every(c => chapterProgress[c.id] === 'completed'));
 
   const BADGES = [
     { id: 'first_chapter', icon: '📖', title: 'First Step',        desc: 'Complete your first chapter', earned: totalChaptersDone >= 1 },
     { id: 'streak_3',      icon: '🔥', title: '3-Day Streak',      desc: 'Stay consistent for 3 days',  earned: streak >= 3 },
     { id: 'xp_100',        icon: '⚡', title: 'XP Hunter',         desc: 'Earn 100 XP total',           earned: xpTotal >= 100 },
-    { id: 'xp_500',        icon: '💎', title: 'Dedicated Learner', desc: 'Earn 500 XP total',           earned: xpTotal >= 500 },
+    { id: 'xp_500',        icon: '💎', title: 'Dedicated',         desc: 'Earn 500 XP total',           earned: xpTotal >= 500 },
     { id: 'mastered',      icon: '🏆', title: 'Hobby Master',      desc: 'Complete 100% of any hobby',  earned: hasFullyMastered },
   ];
+
+  const handleSaveName = () => {
+    if (tempName.trim()) setUserName(tempName.trim());
+    setIsEditing(false);
+  };
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        <Text style={s.title}>Profile</Text>
+        
+        <View style={s.header}>
+          <View style={s.avatarWrap}>
+            <Text style={s.avatarEmoji}>🧑‍🚀</Text>
+          </View>
+          <View style={s.headerInfo}>
+            {isEditing ? (
+              <TextInput
+                style={s.nameInput}
+                value={tempName}
+                onChangeText={setTempName}
+                autoFocus
+                onBlur={handleSaveName}
+                onSubmitEditing={handleSaveName}
+                returnKeyType="done"
+                maxLength={20}
+              />
+            ) : (
+              <View style={s.nameRow}>
+                <Text style={s.username}>{userName}</Text>
+                <TouchableOpacity onPress={() => setIsEditing(true)} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                  <Text style={s.editIcon}>✏️</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+            <Text style={s.userTitle}>Hobby Enthusiast</Text>
+          </View>
+        </View>
 
         <View style={s.xpCard}>
-          <Text style={s.levelText}>Level {level}</Text>
-          <Text style={s.xpTotal}>{xpTotal} XP</Text>
-          <View style={s.bar}>
+          <View style={s.xpHeader}>
+            <View>
+              <Text style={s.levelText}>CURRENT LEVEL</Text>
+              <Text style={s.levelNum}>Level {level}</Text>
+            </View>
+            <View style={s.xpBadge}>
+              <Text style={s.xpTotal}>{xpTotal} XP</Text>
+            </View>
+          </View>
+          <View style={s.barWrap}>
             <View style={[s.barFill, { width: `${xpProgress * 100}%` as any }]} />
           </View>
           <Text style={s.xpNext}>{XP_PER_LEVEL - (xpTotal % XP_PER_LEVEL)} XP to Level {level + 1}</Text>
@@ -59,31 +108,40 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <Text style={s.section}>Badges</Text>
-        <View style={s.badgeGrid}>
+        <View style={s.sectionHeader}>
+          <Text style={s.sectionTitle}>Achievements</Text>
+          <Text style={s.sectionCount}>{BADGES.filter(b => b.earned).length}/{BADGES.length}</Text>
+        </View>
+        
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.badgeScroll}>
           {BADGES.map(b => (
-            <View key={b.id} style={[s.badge, !b.earned && s.badgeLocked]}>
-              <Text style={s.badgeIcon}>{b.icon}</Text>
-              <Text style={[s.badgeTitle, !b.earned && s.badgeTextLocked]}>{b.title}</Text>
-              <Text style={[s.badgeDesc, !b.earned && s.badgeTextLocked]}>{b.desc}</Text>
+            <View key={b.id} style={[s.badge, b.earned ? s.badgeEarned : s.badgeLocked]}>
+              <View style={[s.badgeIconWrap, b.earned ? s.badgeIconWrapEarned : s.badgeIconWrapLocked]}>
+                <Text style={s.badgeIcon}>{b.earned ? b.icon : '🔒'}</Text>
+              </View>
+              <Text style={[s.badgeTitle, !b.earned && s.badgeTextLocked]} numberOfLines={1}>{b.title}</Text>
+              <Text style={[s.badgeDesc, !b.earned && s.badgeTextLocked]} numberOfLines={2}>{b.desc}</Text>
             </View>
           ))}
-        </View>
+        </ScrollView>
 
         {hobbyList.length > 0 && (
           <>
-            <Text style={s.section}>My Hobbies</Text>
+            <Text style={s.sectionTitle}>Course Progress</Text>
             {hobbyList.map(({ plan, chapterProgress }) => {
               const pct = hobbyCompletion(chapterProgress, plan.chapters);
               const done = plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length;
               return (
                 <View key={plan.hobby} style={s.hobbyRow}>
-                  <View style={s.hobbyInfo}>
-                    <Text style={s.hobbyName}>{plan.hobby}</Text>
-                    <Text style={s.hobbyMeta}>{done}/{plan.chapters.length} · {Math.round(pct * 100)}%</Text>
-                  </View>
-                  <View style={s.hobbyBarWrap}>
-                    <View style={[s.hobbyBarFill, { width: `${pct * 100}%` as any }]} />
+                  <Text style={s.hobbyEmoji}>{hobbyEmoji(plan.hobby)}</Text>
+                  <View style={s.hobbyContent}>
+                    <View style={s.hobbyInfo}>
+                      <Text style={s.hobbyName}>{plan.hobby}</Text>
+                      <Text style={s.hobbyMeta}>{done}/{plan.chapters.length}</Text>
+                    </View>
+                    <View style={s.hobbyBarWrap}>
+                      <View style={[s.hobbyBarFill, { width: `${pct * 100}%` as any }]} />
+                    </View>
                   </View>
                 </View>
               );
@@ -97,37 +155,57 @@ export default function ProfileScreen() {
 
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.surface },
-  scroll: { padding: 20, paddingBottom: 100 },
-  title: { fontSize: 28, fontWeight: '900', color: Colors.dark, marginBottom: 20 },
+  scroll: { padding: 24, paddingBottom: 100 },
+  
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 28 },
+  avatarWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: Colors.primaryBg, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.primaryLight },
+  avatarEmoji: { fontSize: 32 },
+  headerInfo: { flex: 1, marginLeft: 16 },
+  nameRow: { flexDirection: 'row', alignItems: 'center' },
+  username: { fontSize: 24, fontWeight: '900', color: Colors.dark, letterSpacing: -0.5, marginRight: 8 },
+  editIcon: { fontSize: 16, opacity: 0.7 },
+  nameInput: { fontSize: 24, fontWeight: '900', color: Colors.dark, letterSpacing: -0.5, padding: 0, margin: 0, borderBottomWidth: 1, borderBottomColor: Colors.primary },
+  userTitle: { fontSize: 14, color: Colors.gray, fontWeight: '600', marginTop: 2 },
 
-  xpCard: { backgroundColor: Colors.primary, borderRadius: 20, padding: 24, marginBottom: 16, alignItems: 'center' },
-  levelText: { fontSize: 14, fontWeight: '700', color: Colors.primaryLight, marginBottom: 4 },
-  xpTotal: { fontSize: 44, fontWeight: '900', color: Colors.white, marginBottom: 16 },
-  bar: { width: '100%', height: 8, backgroundColor: 'rgba(255,255,255,0.25)', borderRadius: 6, overflow: 'hidden', marginBottom: 8 },
-  barFill: { height: 8, backgroundColor: Colors.white, borderRadius: 6 },
-  xpNext: { fontSize: 12, color: Colors.primaryLight },
+  xpCard: { backgroundColor: '#F4F0FF', borderRadius: 24, padding: 24, marginBottom: 24, borderWidth: 1.5, borderColor: Colors.primaryLight, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 15, elevation: 4 },
+  xpHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  levelText: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 4 },
+  levelNum: { fontSize: 32, fontWeight: '900', color: Colors.dark },
+  xpBadge: { backgroundColor: Colors.white, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: Colors.primaryLight },
+  xpTotal: { fontSize: 14, fontWeight: '800', color: Colors.primary },
+  barWrap: { width: '100%', height: 10, backgroundColor: Colors.white, borderRadius: 8, overflow: 'hidden', marginBottom: 12, borderWidth: 1, borderColor: Colors.grayLight },
+  barFill: { height: 10, backgroundColor: Colors.primary, borderRadius: 8 },
+  xpNext: { fontSize: 13, color: Colors.gray, fontWeight: '600', textAlign: 'center' },
 
-  statsRow: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: 18, paddingVertical: 18, marginBottom: 24, borderWidth: 1, borderColor: Colors.grayLight },
+  statsRow: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: 20, paddingVertical: 20, marginBottom: 32, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
   statBox: { flex: 1, alignItems: 'center' },
-  statEmoji: { fontSize: 20, marginBottom: 6 },
-  statVal: { fontSize: 18, fontWeight: '900', color: Colors.dark, marginBottom: 2 },
-  statLbl: { fontSize: 11, color: Colors.gray, fontWeight: '600' },
+  statEmoji: { fontSize: 24, marginBottom: 8 },
+  statVal: { fontSize: 20, fontWeight: '900', color: Colors.dark, marginBottom: 2 },
+  statLbl: { fontSize: 11, color: Colors.gray, fontWeight: '700', textTransform: 'uppercase' },
   statDiv: { width: 1, backgroundColor: Colors.grayLight },
 
-  section: { fontSize: 16, fontWeight: '800', color: Colors.dark, marginBottom: 12 },
+  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 16 },
+  sectionTitle: { fontSize: 20, fontWeight: '900', color: Colors.dark, letterSpacing: -0.5 },
+  sectionCount: { fontSize: 14, fontWeight: '700', color: Colors.primary },
 
-  badgeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
-  badge: { width: '47%', backgroundColor: Colors.white, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: Colors.grayLight },
-  badgeLocked: { opacity: 0.4 },
-  badgeIcon: { fontSize: 26, marginBottom: 8 },
-  badgeTitle: { fontSize: 14, fontWeight: '800', color: Colors.dark, marginBottom: 3 },
-  badgeDesc: { fontSize: 11, color: Colors.gray, lineHeight: 16 },
+  badgeScroll: { paddingRight: 24, paddingBottom: 32, gap: 12, marginHorizontal: -24, paddingHorizontal: 24 },
+  badge: { width: 140, borderRadius: 20, padding: 16, alignItems: 'center' },
+  badgeEarned: { backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.primaryLight, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 10, elevation: 3 },
+  badgeLocked: { backgroundColor: Colors.grayLight, opacity: 0.6 },
+  badgeIconWrap: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
+  badgeIconWrapEarned: { backgroundColor: Colors.primaryBg },
+  badgeIconWrapLocked: { backgroundColor: 'rgba(0,0,0,0.05)' },
+  badgeIcon: { fontSize: 28 },
+  badgeTitle: { fontSize: 14, fontWeight: '800', color: Colors.dark, marginBottom: 4, textAlign: 'center' },
+  badgeDesc: { fontSize: 11, color: Colors.gray, textAlign: 'center', lineHeight: 16 },
   badgeTextLocked: { color: Colors.gray },
 
-  hobbyRow: { backgroundColor: Colors.white, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: Colors.grayLight },
-  hobbyInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
-  hobbyName: { fontSize: 15, fontWeight: '800', color: Colors.dark },
-  hobbyMeta: { fontSize: 12, color: Colors.gray },
-  hobbyBarWrap: { height: 6, backgroundColor: Colors.grayLight, borderRadius: 4, overflow: 'hidden' },
-  hobbyBarFill: { height: 6, backgroundColor: Colors.primary, borderRadius: 4 },
+  hobbyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
+  hobbyEmoji: { fontSize: 32, marginRight: 16 },
+  hobbyContent: { flex: 1 },
+  hobbyInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'center' },
+  hobbyName: { fontSize: 16, fontWeight: '800', color: Colors.dark },
+  hobbyMeta: { fontSize: 13, fontWeight: '700', color: Colors.gray },
+  hobbyBarWrap: { height: 8, backgroundColor: Colors.grayLight, borderRadius: 6, overflow: 'hidden' },
+  hobbyBarFill: { height: 8, backgroundColor: Colors.primary, borderRadius: 6 },
 });

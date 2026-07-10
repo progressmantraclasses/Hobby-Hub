@@ -186,7 +186,7 @@ const s = StyleSheet.create({
   barFill: { height: 8, backgroundColor: Colors.primary, borderRadius: 6 },
   xpNext: { fontSize: 12, color: Colors.gray, fontWeight: '600' },
 
-  continueCard: { backgroundColor: '#EEF2FF', borderRadius: 20, padding: 22, marginBottom: 20, borderWidth: 1, borderColor: Colors.primaryLight },
+  continueCard: { backgroundColor: Colors.primaryBg, borderRadius: 20, padding: 22, marginBottom: 20, borderWidth: 1, borderColor: Colors.primaryLight },
   continueLabel: { fontSize: 10, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 4 },
   continueHobby: { fontSize: 13, fontWeight: '700', color: Colors.gray, marginBottom: 4 },
   continueTitle: { fontSize: 18, fontWeight: '800', color: Colors.dark, marginBottom: 18, lineHeight: 24 },

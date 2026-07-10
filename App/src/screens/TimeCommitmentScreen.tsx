@@ -42,7 +42,7 @@ export default function TimeCommitmentScreen() {
       if (!hobby || !level) throw new Error('Missing data');
       const plan = await generatePlan({ hobby, level, weeklyTime: time });
       addHobby(plan);
-      navigation.navigate('MainTabs', { screen: 'Learn' });
+      navigation.navigate('CourseDetail');
     } catch (err: any) {
       setError(err.message || 'Failed to generate plan');
       setLoading(false);

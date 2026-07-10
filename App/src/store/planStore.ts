@@ -23,7 +23,9 @@ interface PlanState {
   hobby?: string;
   level?: 'beginner' | 'intermediate' | 'advanced';
   weeklyTime?: number;
+  userName: string;
 
+  setUserName: (name: string) => void;
   setHobby: (hobby: string) => void;
   setLevel: (level: 'beginner' | 'intermediate' | 'advanced') => void;
   setWeeklyTime: (time: number) => void;
@@ -45,12 +47,14 @@ const initialState = {
   hobby: undefined,
   level: undefined,
   weeklyTime: undefined,
+  userName: 'Explorer',
 };
 
 export const usePlanStore = create<PlanState>()(
   persist(
     (set) => ({
       ...initialState,
+      setUserName: (userName) => set({ userName }),
       setHobby: (hobby) => set({ hobby }),
       setLevel: (level) => set({ level }),
       setWeeklyTime: (weeklyTime) => set({ weeklyTime }),
