@@ -46,12 +46,9 @@ export default function HomeScreen() {
     })
     : null;
 
-  const startChapter = async () => {
+  const startChapter = () => {
     if (!nextChapter || !active) return;
-    try {
-      const content = await generateChapter(nextChapter.id);
-      nav.navigate('ChapterFlow', { chapter: nextChapter, content });
-    } catch { }
+    nav.navigate('ChapterFlow', { chapter: nextChapter });
   };
 
   return (

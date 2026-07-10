@@ -15,8 +15,9 @@ Return ONLY valid JSON — no markdown, no extra text.
 Generate exactly 7 learning steps in this fixed order:
 1. summary: { type:"summary", whatYouWillLearn:string[], keyConcepts:string[], expectedOutcome:string }
 2. video: { type:"video", searchQueries:string[] (1-2 entries, search intent only — no URLs) }
-3. reflection: { type:"reflection", question:string, format:"mcq"|"shortAnswer"|"trueFalse", options?:string[], correctAnswer:string }
+3. reflection: { type:"reflection", question:string, format:"mcq" (preferred) | "trueFalse", options:string[] (required if mcq or trueFalse), correctAnswer:string }
 4. reading: { type:"reading", content:string (500-800 words), tips:string[], commonMistakes:string[], imagePrompts:string[] }
+   * Rules for reading: 'content' must be pure explanatory prose. Do NOT write, list, or refer to tips, common mistakes, or image prompts inside the 'content' text, as they are shown separately.
 5. interactive: { type:"interactive", activityType:"flashcard"|"match"|"drag_drop"|"identify"|"scenario", ...data }. The data MUST be flat alongside type and activityType (DO NOT nest inside another object). Shape varies: flashcard->{ cards:[{front,back}] }, match->{ pairs:[{term,match}] }, drag_drop->{ items:[],correctOrder:[] }, identify->{ items:[{label,correct}] }, scenario->{ situation,choices:[],bestChoice }.
 6. quiz: { type:"quiz", passingScore:70, questions:[5-10 {question,type:"mcq"|"trueFalse"|"fillBlank"|"shortAnswer",options?:string[],correctAnswer}] }
 7. practice: { type:"practice", task:string, expectedOutcome:string, suggestedMinutes:number }

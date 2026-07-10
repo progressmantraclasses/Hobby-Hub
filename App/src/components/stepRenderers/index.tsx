@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Colors } from '../../theme/colors';
+import { usePlanStore } from '../../store/planStore';
 
 const SummaryStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
   <View style={s.container}>
@@ -70,6 +71,23 @@ const VideoStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
 const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => {
   const [answer, setAnswer] = useState('');
   const [selectedOpt, setSelectedOpt] = useState('');
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+
+  const handleSubmit = () => {
+    if (isSubmitted) {
+      onNext();
+      return;
+    }
+
+    if (step.format === 'mcq' || step.format === 'trueFalse') {
+      const correct = selectedOpt.trim().toLowerCase() === step.correctAnswer?.trim().toLowerCase();
+      setIsCorrect(correct);
+    } else {
+      setIsCorrect(true);
+    }
+    setIsSubmitted(true);
+  };
 
   return (
     <View style={s.container}>
@@ -78,19 +96,49 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
       
       <View style={{ marginTop: 20, marginBottom: 20 }}>
         {step.format === 'mcq' || step.format === 'trueFalse' ? (
-          step.options?.map((opt: string, i: number) => (
-            <TouchableOpacity 
-              key={i} 
-              style={[s.optionBox, selectedOpt === opt && { borderColor: Colors.primary, backgroundColor: Colors.primaryBg }]}
-              onPress={() => setSelectedOpt(opt)}
-            >
-              <Text style={[s.optionText, selectedOpt === opt && { color: Colors.primary, fontWeight: '700' }]}>{opt}</Text>
-            </TouchableOpacity>
-          ))
+          step.options?.map((opt: string, i: number) => {
+            const isSelected = selectedOpt === opt;
+            const isAnswerCorrect = opt.trim().toLowerCase() === step.correctAnswer?.trim().toLowerCase();
+            
+            // Custom dynamic styles based on submission state
+            let optionStyle: any = [s.optionBox];
+            let optionTextStyle: any = [s.optionText];
+
+            if (isSelected) {
+              if (isSubmitted) {
+                if (isCorrect) {
+                  optionStyle.push({ borderColor: Colors.success, backgroundColor: '#E6F4EA' });
+                  optionTextStyle.push({ color: Colors.success, fontWeight: '700' });
+                } else {
+                  optionStyle.push({ borderColor: Colors.danger, backgroundColor: '#FCE8E6' });
+                  optionTextStyle.push({ color: Colors.danger, fontWeight: '700' });
+                }
+              } else {
+                optionStyle.push({ borderColor: Colors.primary, backgroundColor: Colors.primaryBg });
+                optionTextStyle.push({ color: Colors.primary, fontWeight: '700' });
+              }
+            } else if (isSubmitted && isAnswerCorrect) {
+              // Highlight the correct answer if the user picked wrong
+              optionStyle.push({ borderColor: Colors.success, borderWidth: 2, backgroundColor: '#E6F4EA' });
+              optionTextStyle.push({ color: Colors.success, fontWeight: '700' });
+            }
+
+            return (
+              <TouchableOpacity 
+                key={i} 
+                style={optionStyle}
+                onPress={() => !isSubmitted && setSelectedOpt(opt)}
+                activeOpacity={isSubmitted ? 1 : 0.7}
+              >
+                <Text style={optionTextStyle}>{opt}</Text>
+              </TouchableOpacity>
+            );
+          })
         ) : (
           <TextInput 
-            style={s.textInput}
+            style={[s.textInput, isSubmitted && { backgroundColor: Colors.grayLight, color: Colors.gray }]}
             multiline 
+            editable={!isSubmitted}
             placeholder="Type your answer here..."
             placeholderTextColor={Colors.gray}
             value={answer}
@@ -99,53 +147,95 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
         )}
       </View>
 
+      {/* Answer feedback banner */}
+      {isSubmitted && (
+        <View style={[
+          s.feedbackBanner,
+          isCorrect ? { backgroundColor: '#E6F4EA', borderColor: Colors.success } : { backgroundColor: '#FCE8E6', borderColor: Colors.danger }
+        ]}>
+          <Text style={[s.feedbackTitle, isCorrect ? { color: Colors.success } : { color: Colors.danger }]}>
+            {isCorrect ? '🎉 Correct Answer!' : '❌ Incorrect Answer'}
+          </Text>
+          {!isCorrect && step.correctAnswer && (
+            <Text style={s.feedbackDesc}>
+              The correct answer is: <Text style={{ fontWeight: '700' }}>{step.correctAnswer}</Text>
+            </Text>
+          )}
+          {step.format === 'shortAnswer' && step.correctAnswer && (
+            <Text style={s.feedbackDesc}>
+              Suggested Reference: <Text style={{ fontWeight: '600', color: Colors.dark }}>{step.correctAnswer}</Text>
+            </Text>
+          )}
+        </View>
+      )}
+
       <View style={s.actionRow}>
-        <TouchableOpacity style={s.skipBtn} onPress={onNext}>
-          <Text style={s.skipBtnText}>Skip</Text>
-        </TouchableOpacity>
+        {!isSubmitted && (
+          <TouchableOpacity style={s.skipBtn} onPress={onNext}>
+            <Text style={s.skipBtnText}>Skip</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity 
-          style={[s.continueBtn, s.flexBtn, !(answer.trim() || selectedOpt) && s.disabledBtn]} 
-          onPress={onNext}
-          disabled={!(answer.trim() || selectedOpt)}
+          style={[
+            s.continueBtn, 
+            s.flexBtn, 
+            !(answer.trim() || selectedOpt) && !isSubmitted && s.disabledBtn
+          ]} 
+          onPress={handleSubmit}
+          disabled={!(answer.trim() || selectedOpt) && !isSubmitted}
         >
-          <Text style={s.continueBtnText}>Submit & Continue</Text>
+          <Text style={s.continueBtnText}>
+            {isSubmitted ? 'Continue →' : 'Check Answer'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 };
 
-const ReadingStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
-  <View style={s.container}>
-    <Text style={s.title}>Reading</Text>
-    <Text style={s.text}>{step.content}</Text>
-    
-    {step.tips?.length > 0 && (
-      <View style={[s.card, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
-        <Text style={s.cardTitle}>💡 Tips</Text>
-        {step.tips.map((t: string, i: number) => <Text key={i} style={s.text}>• {t}</Text>)}
-      </View>
-    )}
+const cleanContent = (text: string) => {
+  if (!text) return '';
+  const markers = [
+    /tips\s*:/i,
+    /common\s*mistakes\s*:/i,
+    /image\s*prompts?\s*:/i,
+    /###\s*tips/i,
+    /###\s*common\s*mistakes/i,
+    /###\s*image\s*prompts?/i,
+    /\*\*tips\*\*:/i,
+    /\*\*common\s*mistakes\*\*:/i,
+    /\*\*image\s*prompts?\*\*:/i,
+  ];
 
-    {step.commonMistakes?.length > 0 && (
-      <View style={[s.card, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
-        <Text style={s.cardTitle}>⚠️ Common Mistakes</Text>
-        {step.commonMistakes.map((t: string, i: number) => <Text key={i} style={s.text}>• {t}</Text>)}
-      </View>
-    )}
-    
-    {onNext && (
-      <View style={s.actionRow}>
-        <TouchableOpacity style={s.skipBtn} onPress={onNext}>
-          <Text style={s.skipBtnText}>Skip Reading</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[s.continueBtn, s.flexBtn]} onPress={onNext}>
-          <Text style={s.continueBtnText}>Continue</Text>
-        </TouchableOpacity>
-      </View>
-    )}
-  </View>
-);
+  let cleaned = text;
+  for (const marker of markers) {
+    const index = cleaned.search(marker);
+    if (index !== -1) {
+      cleaned = cleaned.substring(0, index);
+    }
+  }
+  return cleaned.trim();
+};
+
+const ReadingStep = ({ step, onNext }: { step: any; onNext?: () => void }) => {
+  return (
+    <View style={s.container}>
+      <Text style={s.title}>Reading</Text>
+      <Text style={s.text}>{cleanContent(step.content)}</Text>
+      
+      {onNext && (
+        <View style={s.actionRow}>
+          <TouchableOpacity style={s.skipBtn} onPress={onNext}>
+            <Text style={s.skipBtnText}>Skip Reading</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[s.continueBtn, s.flexBtn]} onPress={onNext}>
+            <Text style={s.continueBtnText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+};
 
 const InteractiveStep = ({ step, onNext }: { step: any; onNext: () => void }) => {
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
@@ -168,7 +258,7 @@ const InteractiveStep = ({ step, onNext }: { step: any; onNext: () => void }) =>
                 <Text style={[s.flashcardText, isFlipped && s.flashcardTextFlipped]}>
                   {isFlipped ? c.back : c.front}
                 </Text>
-                <Text style={s.flashcardHint}>
+                <Text style={[s.flashcardHint, isFlipped && s.flashcardHintFlipped]}>
                   {isFlipped ? 'Tap to see question' : 'Tap to reveal answer'}
                 </Text>
               </TouchableOpacity>
@@ -265,6 +355,10 @@ const s = StyleSheet.create({
   videoChannel: { fontSize: 13, color: Colors.gray, fontWeight: '600', marginTop: 4 },
   textInput: { backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.grayLight, borderRadius: 12, padding: 16, fontSize: 16, color: Colors.dark, minHeight: 120, textAlignVertical: 'top' },
   
+  feedbackBanner: { padding: 16, borderRadius: 12, borderWidth: 1.5, marginBottom: 20 },
+  feedbackTitle: { fontSize: 16, fontWeight: '800', marginBottom: 4 },
+  feedbackDesc: { fontSize: 14, color: Colors.dark, lineHeight: 20 },
+
   actionRow: { flexDirection: 'row', alignItems: 'center', marginTop: 'auto', paddingTop: 20, gap: 12 },
   continueBtn: { backgroundColor: Colors.primary, padding: 18, borderRadius: 16, alignItems: 'center' },
   flexBtn: { flex: 1 },
@@ -275,8 +369,14 @@ const s = StyleSheet.create({
   skipBtnText: { color: Colors.primary, fontSize: 16, fontWeight: '700' },
   
   flashcard: { backgroundColor: Colors.white, minHeight: 180, borderRadius: 16, padding: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.primaryLight, marginBottom: 16, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 10, elevation: 3 },
-  flashcardFlipped: { backgroundColor: Colors.primary, borderColor: Colors.primary },
+  flashcardFlipped: { backgroundColor: Colors.primaryBg, borderColor: Colors.primary, borderWidth: 2 },
   flashcardText: { fontSize: 20, fontWeight: '700', color: Colors.dark, textAlign: 'center' },
-  flashcardTextFlipped: { color: Colors.white },
-  flashcardHint: { fontSize: 12, color: Colors.gray, marginTop: 20, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' }
+  flashcardTextFlipped: { color: Colors.primary },
+  flashcardHint: { fontSize: 12, color: Colors.gray, marginTop: 20, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' },
+  flashcardHintFlipped: { color: Colors.primaryMid },
+
+  imageScroll: { gap: 12, paddingBottom: 8 },
+  imageCard: { width: 220, backgroundColor: Colors.white, borderRadius: 14, overflow: 'hidden', borderWidth: 1.5, borderColor: Colors.grayLight },
+  stepImage: { width: 220, height: 140 },
+  imagePromptText: { fontSize: 11, color: Colors.gray, padding: 8, fontWeight: '600', lineHeight: 15 },
 });

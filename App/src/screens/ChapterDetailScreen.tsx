@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { usePlanStore, ChapterStatus } from '../store/planStore';
 import { ChapterMeta } from '../schemas/plan.schema';
 import { Colors } from '../theme/colors';
-import { generateChapter } from '../services/api';
 
 const STATUS_LABELS: Record<ChapterStatus, string> = {
   pending:     'Not Started',
@@ -26,29 +25,14 @@ export default function ChapterDetailScreen() {
   const route = useRoute<RouteProp<any, 'ChapterDetail'>>();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { chapter } = route.params as { chapter: ChapterMeta };
-  const { updateChapterProgress, activeHobbyId, hobbies } = usePlanStore();
+  const { activeHobbyId, hobbies } = usePlanStore();
   const chapterProgress = activeHobbyId ? hobbies[activeHobbyId]?.chapterProgress ?? {} : {};
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const currentStatus: ChapterStatus = chapterProgress[chapter.id] || 'pending';
   const { bg, text } = STATUS_COLORS[currentStatus];
 
-  const handleStart = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      if (currentStatus === 'pending' && activeHobbyId) {
-        updateChapterProgress(activeHobbyId, chapter.id, 'in_progress');
-      }
-      
-      const content = await generateChapter(chapter.id);
-      navigation.navigate('ChapterFlow', { chapter, content });
-    } catch (err: any) {
-      setError(err.message || 'Failed to start chapter');
-    } finally {
-      setLoading(false);
-    }
+  const handleStart = () => {
+    navigation.navigate('ChapterFlow', { chapter });
   };
 
   return (
@@ -63,17 +47,11 @@ export default function ChapterDetailScreen() {
         <Text style={styles.title}>{chapter.title}</Text>
         <Text style={styles.summary}>{chapter.summary}</Text>
         <Text style={styles.meta}>⏱ {chapter.estimatedMinutes} minutes • +100 XP</Text>
-        
-        {error ? <Text style={styles.error}>{error}</Text> : null}
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.startBtn} onPress={handleStart} disabled={loading} activeOpacity={0.85}>
-          {loading ? (
-            <ActivityIndicator color={Colors.white} />
-          ) : (
-            <Text style={styles.startBtnText}>{currentStatus === 'completed' ? 'Review Chapter' : 'Start Chapter'}</Text>
-          )}
+        <TouchableOpacity style={styles.startBtn} onPress={handleStart} activeOpacity={0.85}>
+          <Text style={styles.startBtnText}>{currentStatus === 'completed' ? 'Review Chapter' : 'Start Chapter'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

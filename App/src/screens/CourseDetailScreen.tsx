@@ -11,10 +11,10 @@ const RANK = (xp: number) =>
   xp >= 800 ? '🏆 Master' : xp >= 500 ? '💎 Expert' : xp >= 200 ? '⭐ Scholar' : '🌱 Novice';
 
 const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: string }> = {
-  pending:     { label: '',              bg: 'transparent',    color: Colors.gray    },
+  pending: { label: '', bg: 'transparent', color: Colors.gray },
   in_progress: { label: '● In Progress', bg: Colors.primaryCard, color: Colors.primary },
-  completed:   { label: '✓ Done',        bg: '#D1FAE5',        color: Colors.success },
-  skipped:     { label: '⏭ Skipped',    bg: '#FEE2E2',        color: Colors.danger  },
+  completed: { label: '✓ Done', bg: '#D1FAE5', color: Colors.success },
+  skipped: { label: '⏭ Skipped', bg: '#FEE2E2', color: Colors.danger },
 };
 
 export default function CourseDetailScreen() {
@@ -67,69 +67,90 @@ export default function CourseDetailScreen() {
           <Text style={s.goalText}>{plan.goal}</Text>
         </View>
 
-        <View style={s.overviewCard}>
+
+
+        <View style={s.overviewSection}>
           <Text style={s.sectionLabel}>📖 OVERVIEW</Text>
           <Text style={s.overviewText}>{plan.overview}</Text>
         </View>
 
-        <View style={s.statsRow}>
+        <View style={s.statsContainer}>
           {[
-            { icon: '⚡', val: `${courseXp} XP`,                lbl: 'Earned'   },
-            { icon: '📅', val: `${plan.estimatedDurationWeeks}w`, lbl: 'Duration'  },
-            { icon: '⏱', val: `${plan.weeklyTimeHours}h`,      lbl: 'Per Week' },
-            { icon: '🔥', val: `${streak}d`,                    lbl: 'Streak'   },
-          ].map((st, i, arr) => (
-            <React.Fragment key={st.lbl}>
-              <View style={s.stat}>
-                <Text style={s.statIcon}>{st.icon}</Text>
-                <Text style={s.statVal}>{st.val}</Text>
-                <Text style={s.statLbl}>{st.lbl}</Text>
-              </View>
-              {i < arr.length - 1 && <View style={s.statDiv} />}
-            </React.Fragment>
+            { icon: '⚡', val: `${courseXp}`, label: 'XP Earned' },
+            { icon: '📅', val: `${plan.estimatedDurationWeeks}w`, label: 'Duration' },
+            { icon: '⏱', val: `${plan.weeklyTimeHours}h`, label: 'Weekly Target' },
+            { icon: '🔥', val: `${streak}d`, label: 'Streak' },
+          ].map((st) => (
+            <View key={st.label} style={s.statCard}>
+              <Text style={s.statEmoji}>{st.icon}</Text>
+              <Text style={s.statValue}>{st.val}</Text>
+              <Text style={s.statLabel}>{st.label}</Text>
+            </View>
           ))}
         </View>
 
-        <View style={s.xpRow}>
-          <Text style={s.xpLabel}>Progress — {completed}/{chapters.length} chapters</Text>
-          <Text style={s.xpVal}>{Math.round(progress * 100)}%</Text>
+        <View style={s.progressCard}>
+          <View style={s.xpRow}>
+            <Text style={s.progressTitle}>🏆 Campaign Progress</Text>
+            <Text style={s.progressPercentage}>{Math.round(progress * 100)}%</Text>
+          </View>
+          <View style={s.bar}>
+            <View style={[s.barFill, { width: `${progress * 100}%` as any }]} />
+          </View>
+          <Text style={s.progressSub}>{completed} of {chapters.length} chapters completed</Text>
         </View>
-        <View style={s.bar}><View style={[s.barFill, { width: `${progress * 100}%` as any }]} /></View>
 
-        <Text style={s.chapHeading}>📚 Chapters</Text>
-        {chapters.map((ch, idx) => {
-          const status: ChapterStatus = chapterProgress[ch.id] || 'pending';
-          const { label, bg, color } = STATUS_STYLE[status];
-          const done = status === 'completed';
-          const locked = idx > 0 && chapterProgress[chapters[idx - 1].id] !== 'completed';
+        <Text style={s.chapHeading}>📚 Learning Path</Text>
 
-          return (
-            <TouchableOpacity
-              key={ch.id}
-              style={[s.card, done && s.cardDone, locked && s.cardLocked]}
-              onPress={() => !locked && nav.navigate('ChapterDetail', { chapter: ch })}
-              activeOpacity={locked ? 1 : 0.75}
-            >
-              <View style={[s.num, done && s.numDone, locked && s.numLocked]}>
-                <Text style={[s.numText, (done || locked) && s.numTextAlt]}>
-                  {locked ? '🔒' : done ? '✓' : ch.order}
-                </Text>
-              </View>
+        <View style={s.chaptersListContainer}>
+          <View style={s.timelineLine} />
+          {chapters.map((ch, idx) => {
+            const status: ChapterStatus = chapterProgress[ch.id] || 'pending';
+            const { label, bg, color } = STATUS_STYLE[status];
+            const done = status === 'completed';
+            const locked = idx > 0 && chapterProgress[chapters[idx - 1].id] !== 'completed';
+            const isCurrent = firstActive && firstActive.id === ch.id;
 
-              <View style={s.cardBody}>
-                <Text style={[s.cardTitle, done && s.cardTitleDone]} numberOfLines={1}>{ch.title}</Text>
-                <Text style={s.cardSub} numberOfLines={2}>{ch.summary}</Text>
-                <View style={s.cardMeta}>
-                  <Text style={s.metaTime}>⏱ {ch.estimatedMinutes} min</Text>
-                  <Text style={s.metaXP}>+50 XP</Text>
-                  {label ? <View style={[s.pill, { backgroundColor: bg }]}><Text style={[s.pillText, { color }]}>{label}</Text></View> : null}
+            return (
+              <TouchableOpacity
+                key={ch.id}
+                style={[
+                  s.card,
+                  done && s.cardDone,
+                  locked && s.cardLocked,
+                  isCurrent && s.cardActive
+                ]}
+                onPress={() => !locked && nav.navigate('ChapterDetail', { chapter: ch })}
+                activeOpacity={locked ? 1 : 0.75}
+              >
+                {isCurrent && <View style={s.activeBadge}><Text style={s.activeBadgeText}>ACTIVE QUEST</Text></View>}
+
+                <View style={[
+                  s.num,
+                  done && s.numDone,
+                  locked && s.numLocked,
+                  isCurrent && s.numActive
+                ]}>
+                  <Text style={[s.numText, (done || locked || isCurrent) && s.numTextAlt]}>
+                    {locked ? '🔒' : done ? '✓' : ch.order}
+                  </Text>
                 </View>
-              </View>
 
-              {!locked && <Text style={[s.arrow, done && { color: Colors.success }]}>›</Text>}
-            </TouchableOpacity>
-          );
-        })}
+                <View style={s.cardBody}>
+                  <Text style={[s.cardTitle, done && s.cardTitleDone]} numberOfLines={1}>{ch.title}</Text>
+                  <Text style={s.cardSub} numberOfLines={2}>{ch.summary}</Text>
+                  <View style={s.cardMeta}>
+                    <Text style={s.metaTime}>⏱ {ch.estimatedMinutes} min</Text>
+                    <Text style={s.metaXP}>+50 XP</Text>
+                    {label ? <View style={[s.pill, { backgroundColor: bg }]}><Text style={[s.pillText, { color }]}>{label}</Text></View> : null}
+                  </View>
+                </View>
+
+                {!locked && <Text style={[s.arrow, done && { color: Colors.success }]}>›</Text>}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
         <View style={{ height: 110 }} />
       </ScrollView>
@@ -165,33 +186,59 @@ const s = StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 8 },
   goalText: { fontSize: 16, fontWeight: '700', color: Colors.dark, lineHeight: 24 },
 
-  overviewCard: { backgroundColor: Colors.white, borderRadius: 18, padding: 18, marginBottom: 10, borderWidth: 1, borderColor: Colors.grayLight },
+  overviewSection: { paddingHorizontal: 4, marginBottom: 20 },
   overviewText: { fontSize: 14, color: Colors.gray, lineHeight: 22 },
 
-  statsRow: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: 18, paddingVertical: 16, marginBottom: 14, borderWidth: 1, borderColor: Colors.grayLight },
-  stat: { flex: 1, alignItems: 'center' },
-  statIcon: { fontSize: 18, marginBottom: 4 },
-  statVal: { fontSize: 14, fontWeight: '800', color: Colors.dark },
-  statLbl: { fontSize: 10, color: Colors.gray, fontWeight: '600', marginTop: 2 },
-  statDiv: { width: 1, backgroundColor: Colors.grayLight },
+  statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, gap: 8 },
+  statCard: {
+    flex: 1, backgroundColor: Colors.white, borderRadius: 16, paddingVertical: 12, alignItems: 'center',
+    borderWidth: 1.5, borderColor: Colors.grayLight, shadowColor: Colors.primary, shadowOpacity: 0.03, shadowRadius: 8, elevation: 1
+  },
+  statEmoji: { fontSize: 18, marginBottom: 4 },
+  statValue: { fontSize: 13, fontWeight: '900', color: Colors.dark },
+  statLabel: { fontSize: 8, color: Colors.gray, fontWeight: '700', textTransform: 'uppercase', marginTop: 2, textAlign: 'center' },
 
-  xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
-  xpLabel: { fontSize: 13, fontWeight: '700', color: Colors.dark },
-  xpVal: { fontSize: 13, fontWeight: '700', color: Colors.primary },
-  bar: { height: 8, backgroundColor: Colors.grayLight, borderRadius: 6, overflow: 'hidden', marginBottom: 20 },
+  progressCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 18, marginBottom: 24, borderWidth: 1.5, borderColor: Colors.grayLight },
+  progressTitle: { fontSize: 14, fontWeight: '800', color: Colors.dark },
+  progressPercentage: { fontSize: 15, fontWeight: '900', color: Colors.primary },
+  progressSub: { fontSize: 11, color: Colors.gray, fontWeight: '600', marginTop: 6 },
+
+  xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'center' },
+  bar: { height: 8, backgroundColor: Colors.grayLight, borderRadius: 6, overflow: 'hidden' },
   barFill: { height: 8, backgroundColor: Colors.primary, borderRadius: 6 },
 
-  chapHeading: { fontSize: 15, fontWeight: '800', color: Colors.dark, marginBottom: 10 },
+  chapHeading: { fontSize: 16, fontWeight: '900', color: Colors.dark, marginBottom: 16, letterSpacing: -0.5 },
 
-  card: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 16, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: Colors.grayLight },
-  cardDone: { opacity: 0.7 },
-  cardLocked: { opacity: 0.45 },
+  chaptersListContainer: { position: 'relative' },
+  timelineLine: {
+    position: 'absolute', left: 32, top: 20, bottom: 20, width: 3, backgroundColor: Colors.primaryLight, zIndex: 0
+  },
 
-  num: { width: 38, height: 38, borderRadius: 19, backgroundColor: Colors.primaryBg, borderWidth: 1.5, borderColor: Colors.primaryLight, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  card: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16,
+    marginBottom: 14, borderWidth: 1.5, borderColor: Colors.grayLight, position: 'relative', zIndex: 1,
+    shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 8, elevation: 1
+  },
+  cardActive: {
+    borderColor: Colors.primary, borderWidth: 2, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 12, elevation: 3
+  },
+  cardDone: { opacity: 0.95 },
+  cardLocked: { opacity: 0.85 },
+
+  activeBadge: {
+    position: 'absolute', top: -10, right: 16, backgroundColor: Colors.primary, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, zIndex: 2
+  },
+  activeBadgeText: { color: Colors.white, fontSize: 8, fontWeight: '900', letterSpacing: 0.8 },
+
+  num: {
+    width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.primaryBg, borderWidth: 1.5,
+    borderColor: Colors.primaryLight, justifyContent: 'center', alignItems: 'center', marginRight: 14, zIndex: 2
+  },
+  numActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
   numDone: { backgroundColor: Colors.success, borderColor: Colors.success },
   numLocked: { backgroundColor: Colors.grayLight, borderColor: Colors.grayLight },
-  numText: { fontSize: 14, fontWeight: '800', color: Colors.primary },
-  numTextAlt: { fontSize: 16, color: Colors.white },
+  numText: { fontSize: 13, fontWeight: '800', color: Colors.primary },
+  numTextAlt: { fontSize: 15, color: Colors.white },
 
   cardBody: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: Colors.dark, marginBottom: 3 },

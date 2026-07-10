@@ -127,7 +127,7 @@ export default function ProfileScreen() {
 
         {hobbyList.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>Course Progress</Text>
+            <Text style={[s.sectionTitle, { marginTop: 16, marginBottom: 16 }]}>Course Progress</Text>
             {hobbyList.map(({ plan, chapterProgress }) => {
               const pct = hobbyCompletion(chapterProgress, plan.chapters);
               const done = plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length;
@@ -200,7 +200,7 @@ const s = StyleSheet.create({
   badgeDesc: { fontSize: 11, color: Colors.gray, textAlign: 'center', lineHeight: 16 },
   badgeTextLocked: { color: Colors.gray },
 
-  hobbyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
+  hobbyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
   hobbyEmoji: { fontSize: 32, marginRight: 16 },
   hobbyContent: { flex: 1 },
   hobbyInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'center' },
