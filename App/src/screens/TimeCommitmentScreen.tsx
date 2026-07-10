@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -64,8 +64,19 @@ export default function TimeCommitmentScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1, justifyContent: 'center' }}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Onboarding Step Tracker */}
+      <View style={styles.stepContainer}>
+        <View style={styles.stepInfo}>
+          <Text style={styles.stepLabel}>STEP 3 OF 3</Text>
+          <Text style={styles.stepName}>Time Commitment</Text>
+        </View>
+        <View style={styles.progressBar}>
+          <View style={[styles.progressFill, { width: '100%' }]} />
+        </View>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
         <Text style={styles.heading}>How much time{'\n'}can you commit?</Text>
         <Text style={styles.sub}>Enter hours per week (min 2, max 168)</Text>
         
@@ -96,14 +107,23 @@ export default function TimeCommitmentScreen() {
         >
           <Text style={styles.btnText}>Generate My Plan ✨</Text>
         </TouchableOpacity>
-      </KeyboardAvoidingView>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.surface, padding: 28 },
-  heading: { fontSize: 34, fontWeight: '800', color: Colors.dark, lineHeight: 42, marginBottom: 8 },
+  container: { flex: 1, backgroundColor: Colors.surface },
+
+  stepContainer: { paddingHorizontal: 28, paddingTop: 12, marginBottom: 24 },
+  stepInfo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  stepLabel: { fontSize: 10, fontWeight: '900', color: Colors.primary, letterSpacing: 1.5 },
+  stepName: { fontSize: 12, fontWeight: '700', color: Colors.gray },
+  progressBar: { height: 6, backgroundColor: Colors.grayLight, borderRadius: 3, overflow: 'hidden' },
+  progressFill: { height: 6, backgroundColor: Colors.primary, borderRadius: 3 },
+
+  content: { flexGrow: 1, paddingHorizontal: 28, paddingTop: '15%', paddingBottom: 60 },
+  heading: { fontSize: 32, fontWeight: '900', color: Colors.dark, lineHeight: 40, marginBottom: 8, letterSpacing: -0.5 },
   sub: { fontSize: 15, color: Colors.gray, marginBottom: 32 },
   error: { color: Colors.danger, fontSize: 14, fontWeight: '600', marginBottom: 14 },
   
