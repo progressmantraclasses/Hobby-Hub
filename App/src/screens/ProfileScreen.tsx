@@ -5,13 +5,8 @@ import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
-
-const HOBBY_EMOJIS: Record<string, string> = {
-  default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
-  drawing: '🎨', painting: '🎨', yoga: '🧘', cooking: '🍳', reading: '📖',
-  writing: '✍️', photography: '📷', chess: '♟️', dancing: '💃', singing: '🎤',
-};
-const hobbyEmoji = (h: string) => HOBBY_EMOJIS[h.toLowerCase()] ?? HOBBY_EMOJIS.default;
+import { hobbyEmoji } from '../constants/hobbies';
+import { BADGES } from '../constants/badges';
 
 export default function ProfileScreen() {
   const { xpTotal, streak, longestStreak, hobbies, userName, setUserName, hasHydrated } = usePlanStore();
@@ -35,13 +30,8 @@ export default function ProfileScreen() {
   const hasFullyMastered = hobbyList.some(({ plan, chapterProgress }) =>
     plan.chapters.length > 0 && plan.chapters.every(c => chapterProgress[c.id] === 'completed'));
 
-  const BADGES = [
-    { id: 'first_chapter', icon: '📖', title: 'First Step',        desc: 'Complete your first chapter', earned: totalChaptersDone >= 1 },
-    { id: 'streak_3',      icon: '🔥', title: '3-Day Streak',      desc: 'Stay consistent for 3 days',  earned: streak >= 3 },
-    { id: 'xp_100',        icon: '⚡', title: 'XP Hunter',         desc: 'Earn 100 XP total',           earned: xpTotal >= 100 },
-    { id: 'xp_500',        icon: '💎', title: 'Dedicated',         desc: 'Earn 500 XP total',           earned: xpTotal >= 500 },
-    { id: 'mastered',      icon: '🏆', title: 'Hobby Master',      desc: 'Complete 100% of any hobby',  earned: hasFullyMastered },
-  ];
+  const badgeStats = { totalChaptersDone, streak, xpTotal, hasFullyMastered };
+  const badges = BADGES.map(b => ({ ...b, earned: b.isEarned(badgeStats) }));
 
   const handleSaveName = () => {
     if (tempName.trim()) setUserName(tempName.trim());
@@ -119,11 +109,11 @@ export default function ProfileScreen() {
 
         <View style={s.sectionHeader}>
           <Text style={s.sectionTitle}>Achievements</Text>
-          <Text style={s.sectionCount}>{BADGES.filter(b => b.earned).length}/{BADGES.length}</Text>
+          <Text style={s.sectionCount}>{badges.filter(b => b.earned).length}/{badges.length}</Text>
         </View>
-        
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.badgeScroll}>
-          {BADGES.map(b => (
+          {badges.map(b => (
             <View key={b.id} style={[s.badge, b.earned ? s.badgeEarned : s.badgeLocked]}>
               <View style={[s.badgeIconWrap, b.earned ? s.badgeIconWrapEarned : s.badgeIconWrapLocked]}>
                 <Text style={s.badgeIcon}>{b.earned ? b.icon : '🔒'}</Text>

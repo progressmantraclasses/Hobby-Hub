@@ -1,10 +1,11 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, BookOpen, GraduationCap, User, ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 
 import { Colors } from '../theme/colors';
+import { TAB_ICON } from '../constants/navigation';
 
 import HobbyScreen from '../screens/HobbyScreen';
 import LevelScreen from '../screens/LevelScreen';
@@ -21,10 +22,6 @@ import ChapterCompleteScreen from '../screens/ChapterCompleteScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
-const TAB_ICON: Record<string, any> = {
-  Home: Home, Learn: BookOpen, Course: GraduationCap, Profile: User,
-};
 
 function LearnStack() {
   return (

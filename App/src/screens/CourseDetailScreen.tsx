@@ -6,16 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme/colors';
 import ScreenLoader from '../components/ScreenLoader';
-
-const RANK = (xp: number) =>
-  xp >= 800 ? '🏆 Master' : xp >= 500 ? '💎 Expert' : xp >= 200 ? '⭐ Scholar' : '🌱 Novice';
-
-const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: string }> = {
-  pending: { label: '', bg: 'transparent', color: Colors.gray },
-  in_progress: { label: '● In Progress', bg: Colors.primaryCard, color: Colors.primary },
-  completed: { label: '✓ Done', bg: '#D1FAE5', color: Colors.success },
-  skipped: { label: '⏭ Skipped', bg: '#FEE2E2', color: Colors.danger },
-};
+import { RANK } from '../constants/rank';
+import { CHAPTER_STATUS_STYLE } from '../constants/chapterStatus';
 
 export default function CourseDetailScreen() {
   const { hobbies, activeHobbyId, streak, updateStreak, hasHydrated } = usePlanStore();
@@ -114,7 +106,7 @@ export default function CourseDetailScreen() {
           <View style={s.timelineLine} />
           {chapters.map((ch, idx) => {
             const status: ChapterStatus = chapterProgress[ch.id] || 'pending';
-            const { label, bg, color } = STATUS_STYLE[status];
+            const { label, bg, color } = CHAPTER_STATUS_STYLE[status];
             const done = status === 'completed';
             const locked = idx > 0 && chapterProgress[chapters[idx - 1].id] !== 'completed';
             const isCurrent = firstActive && firstActive.id === ch.id;

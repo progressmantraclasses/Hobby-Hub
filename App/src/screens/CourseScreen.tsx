@@ -8,13 +8,7 @@ import { Colors } from '../theme/colors';
 import { hobbyCompletion } from '../utils/xp';
 import Svg, { Circle } from 'react-native-svg';
 import ScreenLoader from '../components/ScreenLoader';
-
-const HOBBY_EMOJIS: Record<string, string> = {
-  default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
-  drawing: '🎨', painting: '🎨', yoga: '🧘', cooking: '🍳', reading: '📖',
-  writing: '✍️', photography: '📷', chess: '♟️', dancing: '💃', singing: '🎤',
-};
-const hobbyEmoji = (h: string) => HOBBY_EMOJIS[h.toLowerCase()] ?? HOBBY_EMOJIS.default;
+import { hobbyEmoji } from '../constants/hobbies';
 
 const ProgressRing = ({ pct }: { pct: number }) => {
   const size = 64, sw = 6, r = (size - sw) / 2, circ = r * 2 * Math.PI;

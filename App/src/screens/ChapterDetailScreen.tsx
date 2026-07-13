@@ -6,20 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { usePlanStore, ChapterStatus } from '../store/planStore';
 import { ChapterMeta } from '../schemas/plan.schema';
 import { Colors } from '../theme/colors';
-
-const STATUS_LABELS: Record<ChapterStatus, string> = {
-  pending:     'Not Started',
-  in_progress: 'In Progress',
-  completed:   'Completed',
-  skipped:     'Skipped',
-};
-
-const STATUS_COLORS: Record<ChapterStatus, { bg: string; text: string }> = {
-  pending:     { bg: Colors.grayLight,   text: Colors.gray },
-  in_progress: { bg: Colors.primaryCard, text: Colors.primary },
-  completed:   { bg: '#D1FAE5',          text: Colors.success },
-  skipped:     { bg: '#FEE2E2',          text: Colors.danger },
-};
+import { CHAPTER_STATUS_LABELS, CHAPTER_STATUS_COLORS } from '../constants/chapterStatus';
 
 export default function ChapterDetailScreen() {
   const route = useRoute<RouteProp<any, 'ChapterDetail'>>();
@@ -30,7 +17,7 @@ export default function ChapterDetailScreen() {
   const chapterProgress = hobbyId ? hobbies[hobbyId]?.chapterProgress ?? {} : {};
 
   const currentStatus: ChapterStatus = chapterProgress[chapter.id] || 'pending';
-  const { bg, text } = STATUS_COLORS[currentStatus];
+  const { bg, text } = CHAPTER_STATUS_COLORS[currentStatus];
 
   const handleStart = () => {
     navigation.navigate('ChapterFlow', { chapter, hobbyId });
@@ -41,7 +28,7 @@ export default function ChapterDetailScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         <View style={[styles.pill, { backgroundColor: bg }]}>
-          <Text style={[styles.pillText, { color: text }]}>{STATUS_LABELS[currentStatus]}</Text>
+          <Text style={[styles.pillText, { color: text }]}>{CHAPTER_STATUS_LABELS[currentStatus]}</Text>
         </View>
 
         <Text style={styles.order}>Chapter {chapter.order}</Text>

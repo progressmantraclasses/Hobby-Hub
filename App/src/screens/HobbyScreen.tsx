@@ -6,23 +6,9 @@ import { usePlanStore } from '../store/planStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../theme/colors';
+import { HOBBY_SUGGESTIONS } from '../constants/hobbies';
 
 const HobbySchema = z.string().min(2, 'Hobby must be at least 2 characters');
-
-const SUGGESTIONS = [
-  { name: 'Coding', emoji: '💻' },
-  { name: 'Guitar', emoji: '🎸' },
-  { name: 'Cooking', emoji: '🍳' },
-  { name: 'Chess', emoji: '♟️' },
-  { name: 'Yoga', emoji: '🧘' },
-  { name: 'Drawing', emoji: '🎨' },
-  { name: 'Photo', emoji: '📷' },
-  { name: 'Spanish', emoji: '🇪🇸' },
-  { name: 'Reading', emoji: '📖' },
-  { name: 'Writing', emoji: '✍️' },
-  { name: 'Piano', emoji: '🎹' },
-  { name: 'Running', emoji: '🏃' },
-];
 
 export default function HobbyScreen() {
   const { hobby, setHobby } = usePlanStore();
@@ -82,7 +68,7 @@ export default function HobbyScreen() {
 
           <Text style={styles.sectionTitle}>Popular Hobbies</Text>
           <View style={styles.suggestionGrid}>
-            {SUGGESTIONS.map((item) => {
+            {HOBBY_SUGGESTIONS.map((item) => {
               const isSelected = input.trim().toLowerCase() === item.name.toLowerCase();
               return (
                 <TouchableOpacity

@@ -7,24 +7,7 @@ import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { greeting, getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
-
-const HOBBY_EMOJIS: Record<string, string> = {
-  default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
-  drawing: '🎨', painting: '🎨', yoga: '🧘', cooking: '🍳', reading: '📖',
-  writing: '✍️', photography: '📷', chess: '♟️', dancing: '💃', singing: '🎤',
-};
-const hobbyEmoji = (h: string) => HOBBY_EMOJIS[h.toLowerCase()] ?? HOBBY_EMOJIS.default;
-
-const SUGGESTED_HOBBIES = [
-  { name: 'Guitar', icon: '🎸' },
-  { name: 'Piano', icon: '🎹' },
-  { name: 'Coding', icon: '💻' },
-  { name: 'Yoga', icon: '🧘' },
-  { name: 'Cooking', icon: '🍳' },
-  { name: 'Photography', icon: '📷' },
-  { name: 'Drawing', icon: '🎨' },
-  { name: 'Chess', icon: '♟️' },
-];
+import { hobbyEmoji, SUGGESTED_HOBBIES } from '../constants/hobbies';
 
 export default function HomeScreen() {
   const nav = useNavigation<NativeStackNavigationProp<any>>();

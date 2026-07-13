@@ -6,12 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { PlanRequest } from '../schemas/plan.schema';
 import { Colors } from '../theme/colors';
-
-const LEVELS: { value: PlanRequest['level']; label: string; desc: string }[] = [
-  { value: 'beginner',     label: 'Beginner',     desc: 'Just starting out, no prior experience' },
-  { value: 'intermediate', label: 'Intermediate', desc: 'Some experience, ready to level up'  },
-  { value: 'advanced',     label: 'Advanced',     desc: 'Solid base, pushing toward mastery'   },
-];
+import { LEVELS } from '../constants/levels';
 
 export default function LevelScreen() {
   const { setLevel } = usePlanStore();
