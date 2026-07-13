@@ -29,15 +29,16 @@ export async function planController(req: Request, res: Response, next: NextFunc
     const mongoDoc = await PlanModel.findOne({ normalizedQuery: key }).lean();
     if (mongoDoc) {
       console.log(`[mongo-hit] ${key}`);
-      const plan = PlanSchema.parse(mongoDoc);
+      const plan = PlanSchema.parse({ ...mongoDoc, id: mongoDoc._id.toString() });
       await redis.set(key, plan, { ex: TTL });
       res.json(plan);
       return;
     }
 
     console.log(`[groq-miss] ${key}`);
-    const plan = await generatePlan(parsed.data);
-    await PlanModel.create({ ...plan, normalizedQuery: key });
+    const generated = await generatePlan(parsed.data);
+    const created = await PlanModel.create({ ...generated, normalizedQuery: key });
+    const plan = PlanSchema.parse({ ...generated, id: created._id.toString() });
     await redis.set(key, plan, { ex: TTL });
     res.json(plan);
   } catch (err) {

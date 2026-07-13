@@ -5,7 +5,7 @@ import { Plan } from '../schemas/plan.schema';
 
 export type ChapterStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
-const STORE_VERSION = 2;
+const STORE_VERSION = 3;
 
 interface HobbyProgress {
   plan: Plan;

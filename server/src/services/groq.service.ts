@@ -1,7 +1,7 @@
 import Groq from "groq-sdk";
 import { z } from "zod";
 import { env } from "../config/env";
-import { PlanRequestSchema, PlanSchema, ChapterContentSchema, type Plan, type ChapterContent } from "../schemas/plan.schema";
+import { PlanRequestSchema, GeneratedPlanSchema, ChapterContentSchema, type GeneratedPlan, type ChapterContent } from "../schemas/plan.schema";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
 
@@ -33,22 +33,25 @@ async function callGroq(system: string, user: string) {
   return JSON.parse(res.choices[0]?.message?.content ?? "{}");
 }
 
-export async function generatePlan(input: unknown): Promise<Plan> {
+export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
   const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
   const currentLevel = level === "advanced" ? "intermediate" : level as "beginner" | "intermediate";
   const targetLevel  = currentLevel === "beginner" ? "intermediate" : "advanced";
-  
+
   const MAX_RETRIES = 3;
   let attempts = 0;
 
   while (attempts < MAX_RETRIES) {
     try {
       const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
-      return PlanSchema.parse(raw);
+      return GeneratedPlanSchema.parse(raw);
     } catch (error) {
       attempts++;
       console.warn(`\n⚠️ [Plan Generation] AI returned invalid data. Retrying... (Attempt ${attempts} of ${MAX_RETRIES})`);
       if (attempts >= MAX_RETRIES) {
+        if (error instanceof z.ZodError) {
+          console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
+        }
         throw new Error("Failed to generate a valid plan after multiple attempts. Please try again.");
       }
     }

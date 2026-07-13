@@ -7,10 +7,10 @@ import { searchVideos } from "../services/youtube.service";
 import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
 
 export async function chapterGenerateController(req: Request, res: Response, next: NextFunction) {
-  const chapterId = req.params.chapterId as string;
+  const { planId, chapterId } = req.params as { planId: string; chapterId: string };
 
   try {
-    const planDoc = await Plan.findOne({ "chapters.id": chapterId });
+    const planDoc = await Plan.findById(planId);
     if (!planDoc) { res.status(404).json({ error: "Plan not found" }); return; }
 
     const chapter = planDoc.chapters.find((c: any) => c.id === chapterId);
@@ -43,7 +43,7 @@ export async function chapterGenerateController(req: Request, res: Response, nex
     }
 
     await Plan.updateOne(
-      { "chapters.id": chapterId },
+      { _id: planId, "chapters.id": chapterId },
       { $set: { "chapters.$.steps": content.steps, "chapters.$.contentGenerated": true } }
     );
 

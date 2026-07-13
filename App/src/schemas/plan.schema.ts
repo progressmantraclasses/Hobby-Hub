@@ -17,6 +17,7 @@ export const ChapterMetaSchema = z.object({
 });
 
 export const PlanSchema = z.object({
+  id: z.string().min(1),
   hobby: z.string().min(1),
   currentLevel: z.enum(["beginner", "intermediate"]),
   targetLevel: z.enum(["intermediate", "advanced"]),

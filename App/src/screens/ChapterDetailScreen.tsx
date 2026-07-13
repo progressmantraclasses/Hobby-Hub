@@ -24,15 +24,16 @@ const STATUS_COLORS: Record<ChapterStatus, { bg: string; text: string }> = {
 export default function ChapterDetailScreen() {
   const route = useRoute<RouteProp<any, 'ChapterDetail'>>();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { chapter } = route.params as { chapter: ChapterMeta };
+  const { chapter, hobbyId: routeHobbyId } = route.params as { chapter: ChapterMeta; hobbyId?: string };
   const { activeHobbyId, hobbies } = usePlanStore();
-  const chapterProgress = activeHobbyId ? hobbies[activeHobbyId]?.chapterProgress ?? {} : {};
+  const hobbyId = routeHobbyId ?? activeHobbyId;
+  const chapterProgress = hobbyId ? hobbies[hobbyId]?.chapterProgress ?? {} : {};
 
   const currentStatus: ChapterStatus = chapterProgress[chapter.id] || 'pending';
   const { bg, text } = STATUS_COLORS[currentStatus];
 
   const handleStart = () => {
-    navigation.navigate('ChapterFlow', { chapter });
+    navigation.navigate('ChapterFlow', { chapter, hobbyId });
   };
 
   return (
@@ -64,7 +65,6 @@ const styles = StyleSheet.create({
 
   pill: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, marginBottom: 20 },
   pillText: { fontSize: 13, fontWeight: '700' },
-
   order: { fontSize: 12, fontWeight: '800', color: Colors.primaryMid, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '800', color: Colors.dark, lineHeight: 34, marginBottom: 14 },
   summary: { fontSize: 15, color: '#475569', lineHeight: 24, marginBottom: 16 },

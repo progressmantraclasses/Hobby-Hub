@@ -16,7 +16,8 @@ export const ChapterMetaSchema = z.object({
   contentGenerated: z.boolean().default(false),
 });
 
-export const PlanSchema = z.object({
+// What the AI is expected to produce — no `id` yet, since the plan doesn't exist in Mongo until after generation.
+export const GeneratedPlanSchema = z.object({
   hobby: z.string().min(1),
   currentLevel: z.enum(["beginner", "intermediate"]),
   targetLevel: z.enum(["intermediate", "advanced"]),
@@ -25,6 +26,11 @@ export const PlanSchema = z.object({
   overview: z.string().min(1),
   goal: z.string().min(1),
   chapters: z.array(ChapterMetaSchema).min(5).max(10),
+});
+
+// The full persisted/API-facing plan, once it has a Mongo _id.
+export const PlanSchema = GeneratedPlanSchema.extend({
+  id: z.string().min(1),
 });
 
 // ── Learning Steps ──────────────────────────────────────────────────────────
@@ -51,6 +57,7 @@ export const ChapterContentSchema = z.object({
 
 export type PlanRequest     = z.infer<typeof PlanRequestSchema>;
 export type ChapterMeta     = z.infer<typeof ChapterMetaSchema>;
+export type GeneratedPlan   = z.infer<typeof GeneratedPlanSchema>;
 export type Plan            = z.infer<typeof PlanSchema>;
 export type ChapterContent  = z.infer<typeof ChapterContentSchema>;
 export type LearningStep    = ChapterContent["steps"][number];

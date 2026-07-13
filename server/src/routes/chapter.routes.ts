@@ -4,6 +4,6 @@ import { rateLimiter } from "../middleware/rateLimiter.middleware";
 
 const router = Router();
 
-router.post("/chapters/:chapterId/generate", rateLimiter, chapterGenerateController);
+router.post("/plans/:planId/chapters/:chapterId/generate", rateLimiter, chapterGenerateController);
 
 export default router;

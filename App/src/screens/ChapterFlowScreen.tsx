@@ -9,13 +9,14 @@ import { Colors } from '../theme/colors';
 import { stepRenderers } from '../components/stepRenderers';
 import { generateChapter } from '../services/api';
 
-type RouteParams = { chapter: ChapterMeta; content?: ChapterContent };
+type RouteParams = { chapter: ChapterMeta; hobbyId?: string; content?: ChapterContent };
 
 export default function ChapterFlowScreen() {
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { chapter } = route.params;
   const { updateChapterProgress, addXp, activeHobbyId, hobbies } = usePlanStore();
+  const hobbyId = route.params.hobbyId ?? activeHobbyId;
 
   const [content, setContent] = useState<ChapterContent | null>(route.params.content || null);
   const [loading, setLoading] = useState(!route.params.content);
@@ -55,14 +56,16 @@ export default function ChapterFlowScreen() {
     try {
       setLoading(true);
       setError('');
-      const data = await generateChapter(chapter.id);
+      const planId = hobbyId ? hobbies[hobbyId]?.plan.id : undefined;
+      if (!planId) throw new Error('No active course found for this chapter');
+      const data = await generateChapter(planId, chapter.id);
       setContent(data);
 
       // Update progress to in_progress if currently pending
-      if (activeHobbyId) {
-        const currentStatus = hobbies[activeHobbyId]?.chapterProgress[chapter.id] || 'pending';
+      if (hobbyId) {
+        const currentStatus = hobbies[hobbyId]?.chapterProgress[chapter.id] || 'pending';
         if (currentStatus === 'pending') {
-          updateChapterProgress(activeHobbyId, chapter.id, 'in_progress');
+          updateChapterProgress(hobbyId, chapter.id, 'in_progress');
         }
       }
     } catch (err: any) {
@@ -77,10 +80,10 @@ export default function ChapterFlowScreen() {
       fetchContent();
     } else {
       // If content was pre-passed, check if status needs updating
-      if (activeHobbyId) {
-        const currentStatus = hobbies[activeHobbyId]?.chapterProgress[chapter.id] || 'pending';
+      if (hobbyId) {
+        const currentStatus = hobbies[hobbyId]?.chapterProgress[chapter.id] || 'pending';
         if (currentStatus === 'pending') {
-          updateChapterProgress(activeHobbyId, chapter.id, 'in_progress');
+          updateChapterProgress(hobbyId, chapter.id, 'in_progress');
         }
       }
     }
@@ -125,10 +128,10 @@ export default function ChapterFlowScreen() {
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
-      if (activeHobbyId) {
+      if (hobbyId) {
         const { xpTotal } = usePlanStore.getState();
         const prevLevel = Math.floor(xpTotal / 200);
-        updateChapterProgress(activeHobbyId, chapter.id, 'completed');
+        updateChapterProgress(hobbyId, chapter.id, 'completed');
         addXp(50);
         const newLevel = Math.floor((xpTotal + 50) / 200);
         navigation.replace('ChapterComplete', { chapter, levelUp: newLevel > prevLevel, newLevel: newLevel + 1 });

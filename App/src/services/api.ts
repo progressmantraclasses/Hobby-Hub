@@ -1,7 +1,7 @@
 import { PlanRequest, Plan, PlanSchema, ChapterContentSchema, ChapterContent } from '../schemas/plan.schema';
 import { Platform } from 'react-native';
 
-const BASE_URL = Platform.OS === 'android' ? 'https://apis.codespirit.in/api' : 'https://apis.codespirit.in/api';
+const BASE_URL = Platform.OS === 'android' ? 'http://192.168.1.34:5000/api' : 'http://192.168.1.34:5000/api';
 
 export const generatePlan = async (request: PlanRequest): Promise<Plan> => {
   const response = await fetch(`${BASE_URL}/generate-plan`, {
@@ -21,8 +21,8 @@ export const generatePlan = async (request: PlanRequest): Promise<Plan> => {
   return parsed.data;
 };
 
-export const generateChapter = async (chapterId: string): Promise<ChapterContent> => {
-  const response = await fetch(`${BASE_URL}/chapters/${chapterId}/generate`, {
+export const generateChapter = async (planId: string, chapterId: string): Promise<ChapterContent> => {
+  const response = await fetch(`${BASE_URL}/plans/${planId}/chapters/${chapterId}/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   });

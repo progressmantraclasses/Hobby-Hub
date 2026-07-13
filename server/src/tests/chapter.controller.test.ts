@@ -12,7 +12,7 @@ describe("chapterGenerateController", () => {
   let next: jest.Mock;
 
   beforeEach(() => {
-    req = { params: { chapterId: "ch-1" } };
+    req = { params: { planId: "plan-1", chapterId: "ch-1" } };
     res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
     next = jest.fn();
     jest.clearAllMocks();
@@ -25,11 +25,11 @@ describe("chapterGenerateController", () => {
         { id: "ch-1", title: "Intro", summary: "Sum", contentGenerated: true, steps: [{ type: "summary" }] }
       ]
     };
-    (Plan.findOne as jest.Mock).mockResolvedValue(mockPlan);
+    (Plan.findById as jest.Mock).mockResolvedValue(mockPlan);
 
     await chapterGenerateController(req as Request, res as Response, next);
 
-    expect(Plan.findOne).toHaveBeenCalledWith({ "chapters.id": "ch-1" });
+    expect(Plan.findById).toHaveBeenCalledWith("plan-1");
     expect(groqService.generateChapterContent).not.toHaveBeenCalled();
     expect(res.json).toHaveBeenCalledWith({ steps: [{ type: "summary" }] });
   });
@@ -41,8 +41,8 @@ describe("chapterGenerateController", () => {
         { id: "ch-1", title: "Intro", summary: "Sum", contentGenerated: false }
       ]
     };
-    (Plan.findOne as jest.Mock).mockResolvedValue(mockPlan);
-    
+    (Plan.findById as jest.Mock).mockResolvedValue(mockPlan);
+
     const mockContent = { steps: [{ type: "summary" }] };
     (groqService.generateChapterContent as jest.Mock).mockResolvedValue(mockContent);
     (Plan.updateOne as jest.Mock).mockResolvedValue({});
@@ -51,7 +51,7 @@ describe("chapterGenerateController", () => {
 
     expect(groqService.generateChapterContent).toHaveBeenCalledWith("guitar", "beginner", "Intro", "Sum");
     expect(Plan.updateOne).toHaveBeenCalledWith(
-      { "chapters.id": "ch-1" },
+      { _id: "plan-1", "chapters.id": "ch-1" },
       { $set: { "chapters.$.steps": mockContent.steps, "chapters.$.contentGenerated": true } }
     );
     expect(res.json).toHaveBeenCalledWith(mockContent);

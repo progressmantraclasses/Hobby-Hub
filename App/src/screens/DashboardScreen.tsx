@@ -104,7 +104,7 @@ export default function DashboardScreen() {
             <TouchableOpacity
               key={ch.id}
               style={[s.card, done && s.cardDone, locked && s.cardLocked]}
-              onPress={() => !locked && nav.navigate('ChapterDetail', { chapter: ch })}
+              onPress={() => !locked && nav.navigate('ChapterDetail', { chapter: ch, hobbyId: activeHobbyId })}
               activeOpacity={locked ? 1 : 0.75}
             >
               {/* Left: order number */}
@@ -135,7 +135,7 @@ export default function DashboardScreen() {
 
       {firstActive && (
         <View style={s.fab}>
-          <TouchableOpacity style={s.fabBtn} onPress={() => nav.navigate('ChapterDetail', { chapter: firstActive })} activeOpacity={0.85}>
+          <TouchableOpacity style={s.fabBtn} onPress={() => nav.navigate('ChapterDetail', { chapter: firstActive, hobbyId: activeHobbyId })} activeOpacity={0.85}>
             <Text style={s.fabSub}>CONTINUE LEARNING</Text>
             <Text style={s.fabTitle} numberOfLines={1}>{firstActive.title}</Text>
           </TouchableOpacity>

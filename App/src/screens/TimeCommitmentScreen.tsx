@@ -193,3 +193,7 @@ const styles = StyleSheet.create({
   loadingTitle: { fontSize: 24, fontWeight: '800', color: Colors.dark, marginBottom: 8, textAlign: 'center' },
   loadingSub: { fontSize: 15, color: Colors.gray, textAlign: 'center', paddingHorizontal: 20, lineHeight: 22 },
 });
+
+
+
+

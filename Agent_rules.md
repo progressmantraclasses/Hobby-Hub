@@ -30,8 +30,7 @@ Every data-fetching component must handle these states **separately and visibly*
 
 Don't collapse these into one boolean. Use a consistent pattern (custom hook or wrapper component) across the whole app — don't reinvent it per screen.
 
-## 3. Navigation / App Entry Point
-- Confirm and state explicitly which screen/tab is the default on app boot.
+## 3. Navigation 
 - Any change to default route must be called out in the summary of changes — don't let it silently change.
 
 ## 4. No Hardcoded Styling / "Random Color" Problem
@@ -45,6 +44,7 @@ Don't collapse these into one boolean. Use a consistent pattern (custom hook or 
 - Do not create empty files, stub files, or placeholder files "for later" unless I explicitly ask for scaffolding. If you do create a stub, list it clearly in your summary so it doesn't get forgotten.
 
 ## 6. No Dead / Unused Code
+- no comments with third person perpective write it as u are the person and u are writing it.
 - Before marking a task complete, check for and report:
   - Unused files
   - Unused imports/functions/variables

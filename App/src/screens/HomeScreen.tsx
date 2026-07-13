@@ -32,7 +32,14 @@ export default function HomeScreen() {
 
   React.useEffect(() => {
     updateStreak();
-    const currentHobby = activeHobbyId ? hobbies[activeHobbyId] : Object.values(hobbies)[0];
+
+    if (!activeHobbyId) {
+      const firstHobby = Object.values(hobbies)[0];
+      if (firstHobby) setActiveHobby(firstHobby.plan.hobby);
+      return;
+    }
+
+    const currentHobby = hobbies[activeHobbyId];
     if (currentHobby) {
       const isComplete = hobbyCompletion(currentHobby.chapterProgress, currentHobby.plan.chapters) === 1;
       if (isComplete) {
@@ -59,7 +66,7 @@ export default function HomeScreen() {
 
   const startChapter = () => {
     if (!nextChapter || !active) return;
-    nav.navigate('ChapterFlow', { chapter: nextChapter });
+    nav.navigate('ChapterFlow', { chapter: nextChapter, hobbyId: active.plan.hobby });
   };
 
   return (

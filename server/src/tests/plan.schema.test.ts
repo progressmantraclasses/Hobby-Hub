@@ -7,6 +7,7 @@ const validChapter = (order: number) => ({
 });
 
 const validPlan = (chapters: any[]) => ({
+  id: "plan-1",
   hobby: "guitar", currentLevel: "beginner" as const, targetLevel: "intermediate" as const,
   weeklyTimeHours: 5, estimatedDurationWeeks: 8,
   overview: "This plan guides you from beginner to intermediate through structured chapters.",
