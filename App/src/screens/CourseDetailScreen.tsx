@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore, ChapterStatus } from '../store/planStore';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { updateAndGetStreak } from '../utils/dateStreak';
 import { Colors } from '../theme/colors';
+import ScreenLoader from '../components/ScreenLoader';
 
 const RANK = (xp: number) =>
   xp >= 800 ? '🏆 Master' : xp >= 500 ? '💎 Expert' : xp >= 200 ? '⭐ Scholar' : '🌱 Novice';
@@ -18,10 +18,18 @@ const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: st
 };
 
 export default function CourseDetailScreen() {
-  const { hobbies, activeHobbyId, streak, updateStreak } = usePlanStore();
+  const { hobbies, activeHobbyId, streak, updateStreak, hasHydrated } = usePlanStore();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
 
   useEffect(() => { updateStreak(); }, []);
+
+  if (!hasHydrated) {
+    return (
+      <SafeAreaView style={s.safe}>
+        <ScreenLoader />
+      </SafeAreaView>
+    );
+  }
 
   const active = activeHobbyId ? hobbies[activeHobbyId] : null;
   if (!active) {

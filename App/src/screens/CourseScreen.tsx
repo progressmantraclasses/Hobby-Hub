@@ -7,6 +7,7 @@ import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { hobbyCompletion } from '../utils/xp';
 import Svg, { Circle } from 'react-native-svg';
+import ScreenLoader from '../components/ScreenLoader';
 
 const HOBBY_EMOJIS: Record<string, string> = {
   default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
@@ -31,9 +32,17 @@ const ProgressRing = ({ pct }: { pct: number }) => {
 };
 
 export default function CourseScreen() {
-  const { hobbies, setActiveHobby, activeHobbyId } = usePlanStore();
+  const { hobbies, setActiveHobby, activeHobbyId, hasHydrated } = usePlanStore();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
   const hobbyList = Object.values(hobbies);
+
+  if (!hasHydrated) {
+    return (
+      <SafeAreaView style={s.safe} edges={['top']}>
+        <ScreenLoader />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={s.safe} edges={['top']}>

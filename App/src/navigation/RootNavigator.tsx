@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, BookOpen, GraduationCap, User, ChevronLeft } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 
-import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 
 import HobbyScreen from '../screens/HobbyScreen';
@@ -38,12 +37,9 @@ function LearnStack() {
 }
 
 function MainTabs() {
-  const { hobbies } = usePlanStore();
-  const hasHobbies = Object.keys(hobbies).length > 0;
-
   return (
     <Tab.Navigator
-      initialRouteName={hasHobbies ? "Course" : "Home"}
+      initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ color, size }) => {

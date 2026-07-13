@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
+import ScreenLoader from '../components/ScreenLoader';
 
 const HOBBY_EMOJIS: Record<string, string> = {
   default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
@@ -13,9 +14,17 @@ const HOBBY_EMOJIS: Record<string, string> = {
 const hobbyEmoji = (h: string) => HOBBY_EMOJIS[h.toLowerCase()] ?? HOBBY_EMOJIS.default;
 
 export default function ProfileScreen() {
-  const { xpTotal, streak, longestStreak, hobbies, userName, setUserName } = usePlanStore();
+  const { xpTotal, streak, longestStreak, hobbies, userName, setUserName, hasHydrated } = usePlanStore();
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState(userName);
+
+  if (!hasHydrated) {
+    return (
+      <SafeAreaView style={s.safe} edges={['top']}>
+        <ScreenLoader />
+      </SafeAreaView>
+    );
+  }
 
   const level = getLevel(xpTotal);
   const xpProgress = getXpProgress(xpTotal);
@@ -63,7 +72,7 @@ export default function ProfileScreen() {
             ) : (
               <View style={s.nameRow}>
                 <Text style={s.username}>{userName}</Text>
-                <TouchableOpacity onPress={() => setIsEditing(true)} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                <TouchableOpacity onPress={() => { setTempName(userName); setIsEditing(true); }} hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
                   <Text style={s.editIcon}>✏️</Text>
                 </TouchableOpacity>
               </View>

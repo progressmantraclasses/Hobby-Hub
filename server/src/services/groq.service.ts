@@ -29,6 +29,7 @@ async function callGroq(system: string, user: string) {
     messages: [{ role: "system", content: system }, { role: "user", content: user }],
     response_format: { type: "json_object" },
     temperature: 0.7,
+    max_completion_tokens: 4096,
   });
   return JSON.parse(res.choices[0]?.message?.content ?? "{}");
 }
@@ -51,6 +52,8 @@ export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
       if (attempts >= MAX_RETRIES) {
         if (error instanceof z.ZodError) {
           console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
+        } else if (error instanceof Groq.APIError) {
+          console.error(`Groq API Error on final attempt (${error.status}):`, error.message);
         }
         throw new Error("Failed to generate a valid plan after multiple attempts. Please try again.");
       }
@@ -73,6 +76,8 @@ export async function generateChapterContent(hobby: string, level: string, title
       if (attempts >= MAX_RETRIES) {
         if (error instanceof z.ZodError) {
           console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
+        } else if (error instanceof Groq.APIError) {
+          console.error(`Groq API Error on final attempt (${error.status}):`, error.message);
         }
         throw new Error("Failed to generate valid chapter content after multiple attempts.");
       }

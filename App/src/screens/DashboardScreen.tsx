@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { updateAndGetStreak } from '../utils/dateStreak';
 import { Colors } from '../theme/colors';
+import ScreenLoader from '../components/ScreenLoader';
 
 const RANK = (xp: number) =>
   xp >= 800 ? '🏆 Master' : xp >= 500 ? '💎 Expert' : xp >= 200 ? '⭐ Scholar' : '🌱 Novice';
@@ -18,11 +19,15 @@ const STATUS_STYLE: Record<ChapterStatus, { label: string; bg: string; color: st
 };
 
 export default function DashboardScreen() {
-  const { hobbies, activeHobbyId } = usePlanStore();
+  const { hobbies, activeHobbyId, hasHydrated } = usePlanStore();
   const nav = useNavigation<NativeStackNavigationProp<any>>();
   const [streak, setStreak] = useState(0);
 
   useEffect(() => { updateAndGetStreak().then(setStreak).catch(() => {}); }, []);
+
+  if (!hasHydrated) {
+    return <SafeAreaView style={s.safe}><ScreenLoader /></SafeAreaView>;
+  }
 
   const active = activeHobbyId ? hobbies[activeHobbyId] : null;
   const plan = active?.plan ?? null;

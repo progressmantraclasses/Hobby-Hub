@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, ActivityIndicator, Animated } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,8 +8,9 @@ import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { stepRenderers } from '../components/stepRenderers';
 import { generateChapter } from '../services/api';
+import { useAsyncTask } from '../hooks/useAsyncTask';
 
-type RouteParams = { chapter: ChapterMeta; hobbyId?: string; content?: ChapterContent };
+type RouteParams = { chapter: ChapterMeta; hobbyId?: string };
 
 export default function ChapterFlowScreen() {
   const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
@@ -18,12 +19,18 @@ export default function ChapterFlowScreen() {
   const { updateChapterProgress, addXp, activeHobbyId, hobbies } = usePlanStore();
   const hobbyId = route.params.hobbyId ?? activeHobbyId;
 
-  const [content, setContent] = useState<ChapterContent | null>(route.params.content || null);
-  const [loading, setLoading] = useState(!route.params.content);
-  const [error, setError] = useState('');
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [loadingText, setLoadingText] = useState('Thinking...');
+
+  const fetchChapter = useCallback((): Promise<ChapterContent> => {
+    const planId = hobbyId ? hobbies[hobbyId]?.plan.id : undefined;
+    if (!planId) return Promise.reject(new Error('No active course found for this chapter'));
+    return generateChapter(planId, chapter.id);
+  }, [hobbyId, hobbies, chapter.id]);
+
+  const { status, data: content, error, run } = useAsyncTask(fetchChapter);
+  const loading = status === 'idle' || status === 'loading';
 
   useEffect(() => {
     if (loading) {
@@ -52,41 +59,18 @@ export default function ChapterFlowScreen() {
     return () => clearInterval(interval);
   }, [loading]);
 
-  const fetchContent = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const planId = hobbyId ? hobbies[hobbyId]?.plan.id : undefined;
-      if (!planId) throw new Error('No active course found for this chapter');
-      const data = await generateChapter(planId, chapter.id);
-      setContent(data);
-
-      // Update progress to in_progress if currently pending
-      if (hobbyId) {
-        const currentStatus = hobbies[hobbyId]?.chapterProgress[chapter.id] || 'pending';
-        if (currentStatus === 'pending') {
-          updateChapterProgress(hobbyId, chapter.id, 'in_progress');
-        }
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to load chapter content');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    if (!content) {
-      fetchContent();
-    } else {
-      // If content was pre-passed, check if status needs updating
-      if (hobbyId) {
-        const currentStatus = hobbies[hobbyId]?.chapterProgress[chapter.id] || 'pending';
-        if (currentStatus === 'pending') {
-          updateChapterProgress(hobbyId, chapter.id, 'in_progress');
+    run()
+      .then(() => {
+        if (hobbyId) {
+          const currentStatus = hobbies[hobbyId]?.chapterProgress[chapter.id] || 'pending';
+          if (currentStatus === 'pending') {
+            updateChapterProgress(hobbyId, chapter.id, 'in_progress');
+          }
         }
-      }
-    }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapter.id]);
 
   if (loading) {
@@ -112,7 +96,7 @@ export default function ChapterFlowScreen() {
           <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>Failed to load content</Text>
           <Text style={styles.errorSub}>{error || 'Something went wrong'}</Text>
-          <TouchableOpacity style={styles.retryBtn} onPress={fetchContent} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.retryBtn} onPress={() => run()} activeOpacity={0.8}>
             <Text style={styles.retryBtnText}>Try Again</Text>
           </TouchableOpacity>
         </View>

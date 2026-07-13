@@ -6,7 +6,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { greeting, getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
-import { generateChapter } from '../services/api';
+import ScreenLoader from '../components/ScreenLoader';
 
 const HOBBY_EMOJIS: Record<string, string> = {
   default: '🧩', guitar: '🎸', piano: '🎹', coding: '💻', programming: '💻',
@@ -28,9 +28,10 @@ const SUGGESTED_HOBBIES = [
 
 export default function HomeScreen() {
   const nav = useNavigation<NativeStackNavigationProp<any>>();
-  const { xpTotal, streak, hobbies, activeHobbyId, setActiveHobby, setHobby, userName, updateStreak } = usePlanStore();
+  const { xpTotal, streak, hobbies, activeHobbyId, setActiveHobby, setHobby, userName, updateStreak, hasHydrated } = usePlanStore();
 
   React.useEffect(() => {
+    if (!hasHydrated) return;
     updateStreak();
 
     if (!activeHobbyId) {
@@ -49,7 +50,15 @@ export default function HomeScreen() {
         }
       }
     }
-  }, []);
+  }, [hasHydrated]);
+
+  if (!hasHydrated) {
+    return (
+      <SafeAreaView style={s.safe} edges={['top']}>
+        <ScreenLoader />
+      </SafeAreaView>
+    );
+  }
 
   const level = getLevel(xpTotal);
   const xpProgress = getXpProgress(xpTotal);

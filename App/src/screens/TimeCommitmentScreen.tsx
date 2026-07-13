@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { generatePlan } from '../services/api';
 import { Colors } from '../theme/colors';
+import { useAsyncTask } from '../hooks/useAsyncTask';
 
 export default function TimeCommitmentScreen() {
   const { hobby, level, addHobby } = usePlanStore();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { status, error: fetchError, run } = useAsyncTask(generatePlan);
+  const loading = status === 'loading';
+  const [validationError, setValidationError] = useState('');
   const [hours, setHours] = useState('');
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const error = validationError || fetchError || '';
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const [loadingText, setLoadingText] = useState('Thinking...');
@@ -47,20 +50,18 @@ export default function TimeCommitmentScreen() {
   const handleSelect = async () => {
     const time = parseInt(hours, 10);
     if (isNaN(time) || time < 2 || time > 168) {
-      setError('Please enter a valid number between 2 and 168');
+      setValidationError('Please enter a valid number between 2 and 168');
       return;
     }
+    setValidationError('');
 
-    setLoading(true);
-    setError('');
+    if (!hobby || !level) return;
     try {
-      if (!hobby || !level) throw new Error('Missing data');
-      const plan = await generatePlan({ hobby, level, weeklyTime: time });
+      const plan = await run({ hobby, level, weeklyTime: time });
       addHobby(plan);
       navigation.navigate('CourseDetail');
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate plan');
-      setLoading(false);
+    } catch {
+      // error is surfaced via the hook's `error` state
     }
   };
 
@@ -106,7 +107,7 @@ export default function TimeCommitmentScreen() {
             value={hours}
             onChangeText={(text) => {
               setHours(text);
-              setError('');
+              setValidationError('');
             }}
             maxLength={3}
             autoFocus

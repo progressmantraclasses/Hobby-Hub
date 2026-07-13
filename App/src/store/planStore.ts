@@ -14,6 +14,7 @@ interface HobbyProgress {
 
 interface PlanState {
   version: number;
+  hasHydrated: boolean;
   hobbies: Record<string, HobbyProgress>;
   activeHobbyId: string | null;
   xpTotal: number;
@@ -39,6 +40,7 @@ interface PlanState {
 
 const initialState = {
   version: STORE_VERSION,
+  hasHydrated: false,
   hobbies: {},
   activeHobbyId: null,
   xpTotal: 0,
@@ -108,17 +110,23 @@ export const usePlanStore = create<PlanState>()(
             lastActiveDate: today,
           };
         }),
-      reset: () => set(initialState),
+      reset: () => set({ ...initialState, hasHydrated: true }),
     }),
     {
       name: 'plan-storage-v2',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => {
+        const { hasHydrated, ...persisted } = state;
+        return persisted;
+      },
       onRehydrateStorage: () => (state) => {
-        if (state && state.version !== STORE_VERSION) {
+        if (!state) return;
+        if (state.version !== STORE_VERSION) {
           console.log('[planStore] Version mismatch — clearing old storage');
-          AsyncStorage.removeItem('plan-storage');
+          AsyncStorage.removeItem('plan-storage-v2');
           Object.assign(state, initialState);
         }
+        state.hasHydrated = true;
       },
     }
   )
