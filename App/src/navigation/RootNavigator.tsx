@@ -43,7 +43,7 @@ function MainTabs() {
 
   return (
     <Tab.Navigator
-      initialRouteName={hasHobbies ? "Course" : "Learn"}
+      initialRouteName={hasHobbies ? "Course" : "Home"}
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ color, size }) => {
