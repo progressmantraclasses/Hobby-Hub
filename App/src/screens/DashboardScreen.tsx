@@ -127,7 +127,7 @@ export default function DashboardScreen() {
           );
         })}
 
-        <View style={{ height: 110 }} />
+        <View style={s.footerSpacer} />
       </ScrollView>
 
       {firstActive && (
@@ -200,4 +200,5 @@ const s = StyleSheet.create({
   fabBtn: { backgroundColor: Colors.primary, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 20, shadowColor: Colors.primary, shadowOpacity: 0.4, shadowRadius: 14, elevation: 8 },
   fabSub: { fontSize: 10, fontWeight: '800', color: Colors.primaryLight, letterSpacing: 1.5, marginBottom: 3 },
   fabTitle: { fontSize: 15, fontWeight: '700', color: Colors.white },
+  footerSpacer: { height: 110 },
 });

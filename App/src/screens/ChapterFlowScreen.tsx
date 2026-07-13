@@ -43,7 +43,7 @@ export default function ChapterFlowScreen() {
     } else {
       pulseAnim.setValue(1);
     }
-  }, [loading]);
+  }, [loading, pulseAnim]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;

@@ -26,7 +26,7 @@ export default function LevelScreen() {
           <Text style={styles.stepName}>Current Level</Text>
         </View>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '66.6%' }]} />
+          <View style={[styles.progressFill, styles.progressFillWidth]} />
         </View>
       </View>
 
@@ -70,4 +70,5 @@ const styles = StyleSheet.create({
   dot: { width: 14, height: 14, borderRadius: 7, backgroundColor: Colors.primary, marginRight: 16 },
   cardTitle: { fontSize: 17, fontWeight: '700', color: Colors.dark, marginBottom: 3 },
   cardDesc: { fontSize: 13, color: Colors.gray, lineHeight: 18 },
+  progressFillWidth: { width: '66.6%' },
 });

@@ -126,7 +126,7 @@ export default function ProfileScreen() {
 
         {hobbyList.length > 0 && (
           <>
-            <Text style={[s.sectionTitle, { marginTop: 16, marginBottom: 16 }]}>Course Progress</Text>
+            <Text style={[s.sectionTitle, s.progressSectionTitle]}>Course Progress</Text>
             {hobbyList.map(({ plan, chapterProgress }) => {
               const pct = hobbyCompletion(chapterProgress, plan.chapters);
               const done = plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length;
@@ -207,4 +207,5 @@ const s = StyleSheet.create({
   hobbyMeta: { fontSize: 13, fontWeight: '700', color: Colors.gray },
   hobbyBarWrap: { height: 8, backgroundColor: Colors.grayLight, borderRadius: 6, overflow: 'hidden' },
   hobbyBarFill: { height: 8, backgroundColor: Colors.primary, borderRadius: 6 },
+  progressSectionTitle: { marginTop: 16, marginBottom: 16 },
 });

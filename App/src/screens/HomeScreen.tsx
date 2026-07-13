@@ -33,7 +33,7 @@ export default function HomeScreen() {
         }
       }
     }
-  }, [hasHydrated]);
+  }, [hasHydrated, activeHobbyId, hobbies, setActiveHobby, updateStreak]);
 
   if (!hasHydrated) {
     return (

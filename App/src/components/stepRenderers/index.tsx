@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Colors } from '../../theme/colors';
-import { usePlanStore } from '../../store/planStore';
 
 const SummaryStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
   <View style={s.container}>
     <Text style={s.title}>Summary</Text>
     <Text style={s.sub}>What You'll Learn</Text>
     {step.whatYouWillLearn.map((item: string, i: number) => <Text key={i} style={s.text}>• {item}</Text>)}
-    <Text style={[s.sub, { marginTop: 20 }]}>Key Concepts</Text>
+    <Text style={[s.sub, s.mt20]}>Key Concepts</Text>
     {step.keyConcepts.map((item: string, i: number) => <Text key={i} style={s.text}>• {item}</Text>)}
     <View style={s.card}>
       <Text style={s.cardTitle}>Outcome</Text>
@@ -39,7 +38,7 @@ const VideoStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
           <Text style={s.cardTitle}>{step.video.title}</Text>
           <Text style={s.videoChannel}>{step.video.channelTitle}</Text>
           {step.videoSummary ? (
-            <Text style={[s.text, { marginTop: 10 }]}>{step.videoSummary}</Text>
+            <Text style={[s.text, s.mt10]}>{step.videoSummary}</Text>
           ) : null}
         </View>
       </View>
@@ -94,7 +93,7 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
       <Text style={s.title}>Reflection</Text>
       <Text style={s.text}>{step.question}</Text>
       
-      <View style={{ marginTop: 20, marginBottom: 20 }}>
+      <View style={s.my20}>
         {step.format === 'mcq' || step.format === 'trueFalse' ? (
           step.options?.map((opt: string, i: number) => {
             const isSelected = selectedOpt === opt;
@@ -158,12 +157,12 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
           </Text>
           {!isCorrect && step.correctAnswer && (
             <Text style={s.feedbackDesc}>
-              The correct answer is: <Text style={{ fontWeight: '700' }}>{step.correctAnswer}</Text>
+              The correct answer is: <Text style={s.bold}>{step.correctAnswer}</Text>
             </Text>
           )}
           {step.format === 'shortAnswer' && step.correctAnswer && (
             <Text style={s.feedbackDesc}>
-              Suggested Reference: <Text style={{ fontWeight: '600', color: Colors.dark }}>{step.correctAnswer}</Text>
+              Suggested Reference: <Text style={s.semiBold}>{step.correctAnswer}</Text>
             </Text>
           )}
         </View>
@@ -245,7 +244,7 @@ const InteractiveStep = ({ step, onNext }: { step: any; onNext: () => void }) =>
       <Text style={s.title}>Interactive Exercise</Text>
       
       {step.activityType === 'flashcard' && step.cards ? (
-        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+        <ScrollView contentContainerStyle={s.pb20}>
           {step.cards.map((c: any, i: number) => {
             const isFlipped = flippedIndex === i;
             return (
@@ -309,7 +308,7 @@ const PracticeStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
       <Text style={s.cardTitle}>Task</Text>
       <Text style={s.text}>{step.task}</Text>
     </View>
-    <View style={[s.card, { marginTop: 10 }]}>
+    <View style={[s.card, s.mt10]}>
       <Text style={s.cardTitle}>Expected Outcome</Text>
       <Text style={s.text}>{step.expectedOutcome}</Text>
     </View>
@@ -379,4 +378,10 @@ const s = StyleSheet.create({
   imageCard: { width: 220, backgroundColor: Colors.white, borderRadius: 14, overflow: 'hidden', borderWidth: 1.5, borderColor: Colors.grayLight },
   stepImage: { width: 220, height: 140 },
   imagePromptText: { fontSize: 11, color: Colors.gray, padding: 8, fontWeight: '600', lineHeight: 15 },
+  mt20: { marginTop: 20 },
+  mt10: { marginTop: 10 },
+  my20: { marginTop: 20, marginBottom: 20 },
+  bold: { fontWeight: '700' },
+  semiBold: { fontWeight: '600', color: Colors.dark },
+  pb20: { paddingBottom: 20 },
 });

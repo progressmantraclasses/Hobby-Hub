@@ -2,7 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ChevronLeft } from 'lucide-react-native';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import { Colors } from '../theme/colors';
 import { TAB_ICON } from '../constants/navigation';
@@ -23,6 +23,30 @@ import ChapterCompleteScreen from '../screens/ChapterCompleteScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Standalone Components to satisfy react/no-unstable-nested-components
+interface TabBarIconProps {
+  routeName: string;
+  color: string;
+  size: number;
+}
+const TabBarIcon = ({ routeName, color, size }: TabBarIconProps) => {
+  const Icon = TAB_ICON[routeName];
+  return Icon ? <Icon color={color} size={size} /> : null;
+};
+
+interface HeaderLeftProps {
+  navigation: any;
+  tintColor?: string;
+}
+const CourseHeaderLeft = ({ navigation, tintColor }: HeaderLeftProps) => (
+  <TouchableOpacity 
+    onPress={() => navigation.navigate('MainTabs', { screen: 'Course' })} 
+    style={styles.headerLeftBtn}
+  >
+    <ChevronLeft color={tintColor} size={28} />
+  </TouchableOpacity>
+);
+
 function LearnStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
@@ -39,15 +63,13 @@ function MainTabs() {
       initialRouteName="Home"
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarIcon: ({ color, size }) => {
-          const Icon = TAB_ICON[route.name];
-          return Icon ? <Icon color={color} size={size} /> : null;
-        },
+        // eslint-disable-next-line react/no-unstable-nested-components
+        tabBarIcon: ({ color, size }) => <TabBarIcon routeName={route.name} color={color} size={size} />,
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.gray,
         tabBarHideOnKeyboard: true,
-        tabBarStyle: { borderTopColor: Colors.grayLight, backgroundColor: Colors.white },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarStyle: styles.tabBar,
+        tabBarLabelStyle: styles.tabBarLabel,
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
@@ -72,11 +94,8 @@ export default function RootNavigator() {
           title: 'Your Course', 
           headerStyle: { backgroundColor: Colors.white }, 
           headerTintColor: Colors.dark,
-          headerLeft: ({ tintColor }) => (
-            <TouchableOpacity onPress={() => navigation.navigate('MainTabs', { screen: 'Course' })} style={{ marginLeft: -8, marginRight: 16, padding: 8 }}>
-              <ChevronLeft color={tintColor} size={28} />
-            </TouchableOpacity>
-          )
+          // eslint-disable-next-line react/no-unstable-nested-components
+          headerLeft: ({ tintColor }) => <CourseHeaderLeft navigation={navigation} tintColor={tintColor} />
         })} 
       />
       <Stack.Screen name="ChapterDetail" component={ChapterDetailScreen} options={{ headerShown: true, title: 'Chapter Overview', headerStyle: { backgroundColor: Colors.white }, headerTintColor: Colors.dark }} />
@@ -85,3 +104,9 @@ export default function RootNavigator() {
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  headerLeftBtn: { marginLeft: -8, marginRight: 16, padding: 8 },
+  tabBar: { borderTopColor: Colors.grayLight, backgroundColor: Colors.white },
+  tabBarLabel: { fontSize: 11, fontWeight: '700' },
+});

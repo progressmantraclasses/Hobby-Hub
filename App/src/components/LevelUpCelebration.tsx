@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Text, StyleSheet, View } from 'react-native';
+import { Animated, Text, StyleSheet } from 'react-native';
 import { Colors } from '../theme/colors';
 
 interface Props { level: number; onDone: () => void; }
@@ -17,7 +17,7 @@ export default function LevelUpCelebration({ level, onDone }: Props) {
       Animated.delay(1800),
       Animated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
     ]).start(onDone);
-  }, []);
+  }, [onDone, opacity, scale]);
 
   return (
     <Animated.View style={[s.overlay, { opacity }]}>

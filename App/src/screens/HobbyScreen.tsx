@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 import { usePlanStore } from '../store/planStore';
@@ -35,7 +35,7 @@ export default function HobbyScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <KeyboardAvoidingView 
-        style={{ flex: 1 }} 
+        style={styles.keyboardAvoid} 
         behavior="padding"
       >
         {/* Onboarding Step Tracker */}
@@ -45,7 +45,7 @@ export default function HobbyScreen() {
             <Text style={styles.stepName}>Choose Hobby</Text>
           </View>
           <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: '33.3%' }]} />
+            <View style={[styles.progressFill, styles.progressFillWidth]} />
           </View>
         </View>
 
@@ -142,4 +142,6 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: { backgroundColor: Colors.grayLight, shadowOpacity: 0, elevation: 0 },
   buttonText: { color: Colors.white, fontSize: 18, fontWeight: '800' },
+  keyboardAvoid: { flex: 1 },
+  progressFillWidth: { width: '33.3%' },
 });

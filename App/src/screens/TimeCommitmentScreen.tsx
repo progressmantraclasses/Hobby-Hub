@@ -31,7 +31,7 @@ export default function TimeCommitmentScreen() {
     } else {
       pulseAnim.setValue(1);
     }
-  }, [loading]);
+  }, [loading, pulseAnim]);
 
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
@@ -88,7 +88,7 @@ export default function TimeCommitmentScreen() {
           <Text style={styles.stepName}>Time Commitment</Text>
         </View>
         <View style={styles.progressBar}>
-          <View style={[styles.progressFill, { width: '100%' }]} />
+          <View style={[styles.progressFill, styles.progressFillWidth]} />
         </View>
       </View>
 
@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
   loadingIcon: { fontSize: 40 },
   loadingTitle: { fontSize: 24, fontWeight: '800', color: Colors.dark, marginBottom: 8, textAlign: 'center' },
   loadingSub: { fontSize: 15, color: Colors.gray, textAlign: 'center', paddingHorizontal: 20, lineHeight: 22 },
+  progressFillWidth: { width: '100%' },
 });
 
 

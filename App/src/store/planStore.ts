@@ -116,7 +116,8 @@ export const usePlanStore = create<PlanState>()(
       name: 'plan-storage-v2',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => {
-        const { hasHydrated, ...persisted } = state;
+        const persisted = { ...state };
+        delete (persisted as { hasHydrated?: boolean }).hasHydrated;
         return persisted;
       },
       onRehydrateStorage: () => (state) => {

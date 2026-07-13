@@ -13,14 +13,14 @@ import { hobbyEmoji } from '../constants/hobbies';
 const ProgressRing = ({ pct }: { pct: number }) => {
   const size = 64, sw = 6, r = (size - sw) / 2, circ = r * 2 * Math.PI;
   return (
-    <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
-      <Svg width={size} height={size} style={{ position: 'absolute' }}>
+    <View style={[s.ringContainer, { width: size, height: size }]}>
+      <Svg width={size} height={size} style={s.ringSvg}>
         <Circle stroke={Colors.primaryBg} fill="none" cx={size / 2} cy={size / 2} r={r} strokeWidth={sw} />
         <Circle stroke={Colors.primary} fill="none" cx={size / 2} cy={size / 2} r={r} strokeWidth={sw}
           strokeDasharray={`${circ} ${circ}`} strokeDashoffset={circ - pct * circ}
           strokeLinecap="round" originX={size / 2} originY={size / 2} rotation="-90" />
       </Svg>
-      <Text style={{ fontSize: 13, fontWeight: '900', color: Colors.primary }}>{Math.round(pct * 100)}%</Text>
+      <Text style={s.ringText}>{Math.round(pct * 100)}%</Text>
     </View>
   );
 };
@@ -127,4 +127,7 @@ const s = StyleSheet.create({
   addBtnIcon: { fontSize: 28, fontWeight: '400', color: Colors.primary, marginRight: 16, width: 40, textAlign: 'center' },
   addBtnTitle: { fontSize: 16, fontWeight: '800', color: Colors.primary, marginBottom: 2 },
   addBtnSub: { fontSize: 13, color: Colors.primary, opacity: 0.8 },
+  ringContainer: { justifyContent: 'center', alignItems: 'center' },
+  ringSvg: { position: 'absolute' },
+  ringText: { fontSize: 13, fontWeight: '900', color: Colors.primary },
 });
