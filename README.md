@@ -40,6 +40,7 @@ Hobby-Hub/
 - **Database:** MongoDB via Mongoose
 - **Cache / rate limiting:** Upstash Redis
 - **AI:** Groq SDK (Llama-3.1)
+- **Local embeddings:** `@huggingface/transformers` (ONNX runtime, semantic cache)
 - **External API:** YouTube Data API v3
 - **Validation:** Zod
 - **Testing:** Jest, Supertest, ts-jest
@@ -69,13 +70,15 @@ utils/               Pure helper functions (XP/level math, streak-date math)
 config/        env.ts (validated env vars), mongo.ts, redis.ts
 controllers/   plan.controller.ts, chapter.controller.ts, video.controller.ts
 routes/        plan.routes.ts, chapter.routes.ts, video.routes.ts
-services/      groq.service.ts (LLM calls), youtube.service.ts, videoFilter.service.ts, semanticCache.service.ts
+services/      groq.service.ts (LLM calls), youtube.service.ts, videoFilter.service.ts, semanticCache.service.ts (local embedding-based semantic cache)
 models/        Plan.model.ts, VideoCache.model.ts (Mongoose schemas)
 schemas/       plan.schema.ts — Zod schemas (shared shape with the frontend)
-middleware/    rateLimiter, validate, errorHandler
+middleware/    rateLimiter, errorHandler
 utils/         normalizeQuery.ts
 tests/         Jest test suites
 ```
+
+`server/.model-cache/` (gitignored, created on first run) — the downloaded embedding model, kept outside `node_modules` so it survives `npm ci`/redeploys.
 
 ---
 
@@ -170,13 +173,15 @@ graph TD
     Client[React Native App] -->|POST /api/generate-plan| Backend[Express API]
     Backend -->|1. exact-match lookup| Redis[Upstash Redis]
     Backend -->|2. fallback: normalizedQuery lookup| MongoDB[(MongoDB)]
-    Backend -->|3. fallback: generate| LLM[Groq Llama-3.1]
+    Backend -->|3. fallback: semantic-similarity match| SemanticCache[Local embedding model]
+    Backend -->|4. fallback: generate| LLM[Groq Llama-3.1]
 ```
 
 1. **Redis** — plans are cached under a normalized key (`hobby:level:weeklyTime`, e.g. `guitar:beginner:5`) with a 24h TTL. An exact match returns instantly.
 2. **MongoDB** — on a Redis miss, the server checks for a document with a matching `normalizedQuery`. A hit is re-written back into Redis.
-3. **Groq (Llama-3.1)** — only reached when both caches miss; the generated plan is persisted to MongoDB and Redis for next time.
+3. **Semantic cache** (`services/semanticCache.service.ts`) — on a MongoDB miss, plans with the same `level`/`weeklyTime` are compared against the request's hobby text using a real sentence embedding, computed locally via [`@huggingface/transformers`](https://github.com/huggingface/transformers.js) (`onnx-community/all-MiniLM-L6-v2-ONNX`, running fully in-process — no API key, no per-request network call). Cosine similarity threshold `0.65`, tuned so it catches genuine near-duplicates and paraphrases (e.g. "learn to strum a guitar" ↔ "acoustic guitar lessons" scores ~0.63 despite sharing almost no words) while keeping different-but-related hobbies apart (e.g. "guitar" vs "piano" stays at ~0.57). A hit is written back into Redis.
+4. **Groq (Llama-3.1)** — only reached when all three caches miss; the generated plan is persisted to MongoDB (with its embedding) and Redis for next time.
+
+The embedding model (~90MB) downloads once and is cached at `server/.model-cache/` (gitignored, kept outside `node_modules` so it survives `npm ci`/redeploys instead of re-downloading every time). The server warms it up at startup (`warmupSemanticCache()` in `server.ts`) so the first real request doesn't pay the load-time cost.
 
 Chapter content follows the same pattern per-chapter, scoped by plan ID: once a chapter's content is generated, it's stored on that chapter's `steps` field and served from MongoDB on subsequent requests without calling the LLM again.
-
-> **Note:** `server/src/services/semanticCache.service.ts` contains a scaffolded semantic-similarity cache (cosine similarity over query embeddings) intended as a future third tier — e.g. matching "acoustic guitar lessons" to an existing "guitar basics" plan. It is not currently wired into the request flow (embedding generation is a `TODO`), so it has no effect yet.

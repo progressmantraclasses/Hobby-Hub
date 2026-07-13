@@ -1,26 +1,25 @@
 # Hobby Hub - Backend Server
 
-This is the Node.js / Express backend server for **Hobby Hub**. It handles AI integration, rate limiting, and customized plan generation logic with a two-tier caching system.
+This is the Node.js / Express backend server for **Hobby Hub**. It handles AI integration, rate limiting, and customized plan generation logic with a three-tier caching system.
 
 ## ⚙️ Features & Architecture
 
 - **Express Server**: Fast, unopinionated web framework for Node.js REST APIs.
-- **Two-Tier Caching System**:
+- **Three-Tier Caching System**:
   - **Upstash Redis**: Fast, in-memory cache keyed on `hobby:level:weeklyTime`, serves exact matches instantly.
   - **MongoDB Cache**: Persistent cache for successfully generated roadmaps and per-chapter content, falls back to Redis on a hit.
+  - **Semantic Cache** (`semanticCache.service.ts`): On a MongoDB miss, candidates with the same `level`/`weeklyTime` are compared against the request's hobby text using a real sentence embedding computed locally via `@huggingface/transformers` (`onnx-community/all-MiniLM-L6-v2-ONNX`, ONNX runtime, no API key, no per-request network call). Cosine similarity threshold `0.65` — catches genuine paraphrases (e.g. "learn to strum a guitar" ↔ "acoustic guitar lessons", ~0.63 similarity despite sharing almost no words) while keeping different-but-related hobbies apart (e.g. "guitar" vs "piano" stays ~0.57). The model (~90MB) is cached at `server/.model-cache/` (gitignored, outside `node_modules` so it survives redeploys) and warmed up at server startup so the first request isn't the one that pays the load cost.
 - **AI Integration**: Communicates with the Groq SDK (Llama-3.1 model) to generate fully structured, gamified hobby roadmaps in JSON format.
 - **Rate Limiting**: Protects expensive LLM routes using Redis sorted-set window rate limiting.
-
-> `services/semanticCache.service.ts` scaffolds a third, semantic-similarity cache tier (cosine similarity over query embeddings) but is not yet wired into any controller — embedding generation is an open `TODO`, so it currently has no effect on requests.
 
 ## 📂 Project Structure
 - `src/config`: `env.ts` (validated env vars), `mongo.ts`, `redis.ts`
 - `src/controllers`: `plan.controller.ts`, `chapter.controller.ts`, `video.controller.ts`
 - `src/routes`: route definitions, one file per resource
-- `src/services`: `groq.service.ts` (LLM calls), `youtube.service.ts`, `videoFilter.service.ts`, `semanticCache.service.ts`
+- `src/services`: `groq.service.ts` (LLM calls), `youtube.service.ts`, `videoFilter.service.ts`, `semanticCache.service.ts` (local embedding-based semantic matching)
 - `src/models`: Mongoose schemas (`Plan.model.ts`, `VideoCache.model.ts`)
 - `src/schemas`: Zod schemas, shared shape with the frontend
-- `src/middleware`: `rateLimiter`, `validate`, `errorHandler`
+- `src/middleware`: `rateLimiter`, `errorHandler`
 - `src/tests`: Jest test suites
 
 ## 🛠 Tech Stack
@@ -31,6 +30,7 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - **Database**: MongoDB (Mongoose ODM)
 - **Caching**: Upstash Redis (`ioredis`)
 - **AI Provider**: Groq SDK
+- **Local Embeddings**: `@huggingface/transformers` (ONNX runtime, for the semantic cache)
 - **Validation**: Zod
 - **Testing**: Jest & Supertest
 

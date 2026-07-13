@@ -14,6 +14,7 @@ const PlanSchema = new Schema({
   overview: String, goal: String,
   chapters: [ChapterMetaSchema],
   normalizedQuery: { type: String, required: true, index: true },
+  embedding: { type: [Number], default: undefined },
   createdAt: { type: Date, default: Date.now },
 });
 

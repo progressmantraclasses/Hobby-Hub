@@ -7,4 +7,5 @@ dist/
 .expo/
 build/
 Agent_rules.md
+server/.model-cache/
 

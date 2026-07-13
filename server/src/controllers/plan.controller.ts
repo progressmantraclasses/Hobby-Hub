@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { PlanRequestSchema, PlanSchema, type Plan } from "../schemas/plan.schema";
 import { generatePlan } from "../services/groq.service";
+import { generateEmbedding, findSimilarPlan } from "../services/semanticCache.service";
 import { redis } from "../config/redis";
 import { Plan as PlanModel } from "../models/Plan.model";
 import { normalizeQuery } from "../utils/normalizeQuery";
@@ -35,9 +36,20 @@ export async function planController(req: Request, res: Response, next: NextFunc
       return;
     }
 
+    const queryEmbedding = await generateEmbedding(hobby.trim().toLowerCase());
+
+    const similarDoc = await findSimilarPlan(queryEmbedding, level, weeklyTime);
+    if (similarDoc) {
+      console.log(`[semantic-hit] ${key}`);
+      const plan = PlanSchema.parse({ ...similarDoc, id: similarDoc._id.toString() });
+      await redis.set(key, plan, { ex: TTL });
+      res.json(plan);
+      return;
+    }
+
     console.log(`[groq-miss] ${key}`);
     const generated = await generatePlan(parsed.data);
-    const created = await PlanModel.create({ ...generated, normalizedQuery: key });
+    const created = await PlanModel.create({ ...generated, normalizedQuery: key, embedding: queryEmbedding });
     const plan = PlanSchema.parse({ ...generated, id: created._id.toString() });
     await redis.set(key, plan, { ex: TTL });
     res.json(plan);
