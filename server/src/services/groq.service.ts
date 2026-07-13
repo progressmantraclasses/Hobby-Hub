@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 import { z } from "zod";
 import { env } from "../config/env";
+import { AIProviderError } from "../utils/errors";
 import { PlanRequestSchema, GeneratedPlanSchema, ChapterContentSchema, type GeneratedPlan, type ChapterContent } from "../schemas/plan.schema";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
@@ -34,54 +35,64 @@ async function callGroq(system: string, user: string) {
   return JSON.parse(res.choices[0]?.message?.content ?? "{}");
 }
 
+// Shared by generatePlan/generateChapterContent: both call Groq with a prompt, validate the
+// JSON it returns against a Zod schema, and retry a few times if the model returns something
+// that doesn't parse. On the final attempt, a Groq API failure (outage, rate limit, bad key)
+// is raised as an AIProviderError so the client gets a 503, not a generic 500 — anything else
+// (malformed JSON that fails our schema) keeps the original, caller-specific message.
+async function generateWithRetries<T>(
+  label: string,
+  attempt: () => Promise<T>,
+  finalErrorMessage: string
+): Promise<T> {
+  const MAX_RETRIES = 3;
+
+  for (let attemptNum = 1; attemptNum <= MAX_RETRIES; attemptNum++) {
+    try {
+      return await attempt();
+    } catch (error) {
+      console.warn(`\n⚠️ [${label}] AI returned invalid data. Retrying... (Attempt ${attemptNum} of ${MAX_RETRIES})`);
+
+      if (attemptNum === MAX_RETRIES) {
+        if (error instanceof z.ZodError) {
+          console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
+          throw new Error(finalErrorMessage, { cause: error });
+        }
+        if (error instanceof Groq.APIError) {
+          console.error(`Groq API Error on final attempt (${error.status}):`, error.message);
+          throw new AIProviderError(finalErrorMessage, { cause: error });
+        }
+        throw new Error(finalErrorMessage, { cause: error });
+      }
+    }
+  }
+
+  // Unreachable — the loop above always returns or throws on its final iteration.
+  throw new Error(finalErrorMessage);
+}
+
 export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
   const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
   const currentLevel = level === "advanced" ? "intermediate" : level as "beginner" | "intermediate";
   const targetLevel  = currentLevel === "beginner" ? "intermediate" : "advanced";
 
-  const MAX_RETRIES = 3;
-  let attempts = 0;
-
-  while (attempts < MAX_RETRIES) {
-    try {
+  return generateWithRetries(
+    "Plan Generation",
+    async () => {
       const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
       return GeneratedPlanSchema.parse(raw);
-    } catch (error) {
-      attempts++;
-      console.warn(`\n⚠️ [Plan Generation] AI returned invalid data. Retrying... (Attempt ${attempts} of ${MAX_RETRIES})`);
-      if (attempts >= MAX_RETRIES) {
-        if (error instanceof z.ZodError) {
-          console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
-        } else if (error instanceof Groq.APIError) {
-          console.error(`Groq API Error on final attempt (${error.status}):`, error.message);
-        }
-        throw new Error("Failed to generate a valid plan after multiple attempts. Please try again.");
-      }
-    }
-  }
-  throw new Error("Failed to generate plan");
+    },
+    "Failed to generate a valid plan after multiple attempts. Please try again."
+  );
 }
 
 export async function generateChapterContent(hobby: string, level: string, title: string, summary: string): Promise<ChapterContent> {
-  const MAX_RETRIES = 3;
-  let attempts = 0;
-
-  while (attempts < MAX_RETRIES) {
-    try {
+  return generateWithRetries(
+    "Chapter Generation",
+    async () => {
       const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
       return ChapterContentSchema.parse(raw);
-    } catch (error) {
-      attempts++;
-      console.warn(`\n⚠️ [Chapter Generation] AI returned invalid data. Retrying... (Attempt ${attempts} of ${MAX_RETRIES})`);
-      if (attempts >= MAX_RETRIES) {
-        if (error instanceof z.ZodError) {
-          console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
-        } else if (error instanceof Groq.APIError) {
-          console.error(`Groq API Error on final attempt (${error.status}):`, error.message);
-        }
-        throw new Error("Failed to generate valid chapter content after multiple attempts.");
-      }
-    }
-  }
-  throw new Error("Failed to generate chapter content");
+    },
+    "Failed to generate valid chapter content after multiple attempts."
+  );
 }

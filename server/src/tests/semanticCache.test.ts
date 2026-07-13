@@ -101,7 +101,7 @@ describe("Semantic Cache Service", () => {
       });
 
       const result = await findSimilarPlan([1, 0, 0], "beginner", 5);
-      expect((result as any)._id).toBe("exact");
+      expect((result as { _id?: string })?._id).toBe("exact");
     });
   });
 });

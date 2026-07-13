@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import { AIProviderError } from "../utils/errors";
 
 export function errorHandler(
   err: unknown,
@@ -8,7 +9,7 @@ export function errorHandler(
 ) {
   console.error(err);
 
-  if (err instanceof Error && err.name === "AIProviderError") {
+  if (err instanceof AIProviderError) {
     res.status(503).json({
       code: "AI_SERVICE_UNAVAILABLE",
       message: err.message,

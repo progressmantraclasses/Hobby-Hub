@@ -1,40 +1,62 @@
 import { env } from "../config/env";
 import { VideoCache } from "../models/VideoCache.model";
 
-export async function searchVideos(query: string) {
+export interface YouTubeVideo {
+  videoId: string;
+  title: string;
+  description: string;
+  thumbnailUrl: string;
+  duration: string;
+  viewCount: number;
+  likeCount: number;
+  commentCount: number;
+  channelTitle: string;
+  channelId: string;
+  subscriberCount: number;
+  score?: number;
+}
+
+export async function searchVideos(query: string): Promise<YouTubeVideo[]> {
   const queryNormalized = query.trim().toLowerCase();
   
   const cached = await VideoCache.findOne({ queryNormalized }).lean();
-  if (cached) return cached.videos;
+  if (cached) return cached.videos as YouTubeVideo[];
 
   // 1. search.list
   const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(queryNormalized)}&type=video&key=${env.YOUTUBE_API_KEY}`;
   const searchRes = await fetch(searchUrl);
-  const searchData = (await searchRes.json()) as any;
+  const searchData = (await searchRes.json()) as { items?: Array<{ id?: { videoId?: string }; snippet?: { channelId?: string } }> };
   const items = searchData.items || [];
   
   if (!items.length) return [];
 
-  const videoIds = items.map((item: any) => item.id.videoId).filter(Boolean);
-  const channelIds = items.map((item: any) => item.snippet.channelId).filter(Boolean);
+  const videoIds = items.map((item) => item.id?.videoId).filter(Boolean);
+  const channelIds = items.map((item) => item.snippet?.channelId).filter(Boolean);
 
   // 2. videos.list for stats & duration
   const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails,statistics,snippet&id=${videoIds.join(",")}&key=${env.YOUTUBE_API_KEY}`;
   const videosRes = await fetch(videosUrl);
-  const videosData = (await videosRes.json()) as any;
+  const videosData = (await videosRes.json()) as {
+    items?: Array<{
+      id: string;
+      snippet?: { title?: string; description?: string; thumbnails?: { high?: { url?: string }; default?: { url?: string } }; channelTitle?: string; channelId?: string };
+      contentDetails?: { duration?: string };
+      statistics?: { viewCount?: string; likeCount?: string; commentCount?: string };
+    }>;
+  };
   const videoDetails = videosData.items || [];
 
   // 3. channels.list for subscriberCount
   const channelsUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${Array.from(new Set(channelIds)).join(",")}&key=${env.YOUTUBE_API_KEY}`;
   const channelsRes = await fetch(channelsUrl);
-  const channelsData = (await channelsRes.json()) as any;
+  const channelsData = (await channelsRes.json()) as { items?: Array<{ id: string; statistics?: { subscriberCount?: string } }> };
   const channelDetails = channelsData.items || [];
 
   const subsMap = new Map(
-    channelDetails.map((c: any) => [c.id, Number(c.statistics?.subscriberCount || 0)])
+    channelDetails.map((c) => [c.id, Number(c.statistics?.subscriberCount || 0)])
   );
 
-  const formattedVideos = videoDetails.map((v: any) => {
+  const formattedVideos: YouTubeVideo[] = videoDetails.map((v) => {
     const stats = v.statistics || {};
     return {
       videoId: v.id,
@@ -47,7 +69,7 @@ export async function searchVideos(query: string) {
       commentCount: Number(stats.commentCount || 0),
       channelTitle: v.snippet?.channelTitle || "",
       channelId: v.snippet?.channelId || "",
-      subscriberCount: subsMap.get(v.snippet?.channelId) || 0,
+      subscriberCount: subsMap.get(v.snippet?.channelId || "") || 0,
     };
   });
 

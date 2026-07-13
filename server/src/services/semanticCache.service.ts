@@ -58,7 +58,7 @@ export async function findSimilarPlan(queryEmbedding: number[], level: string, w
 
   let best: { plan: (typeof candidates)[number]; similarity: number } | null = null;
   for (const plan of candidates) {
-    const planEmbedding = (plan as any).embedding as number[] | undefined;
+    const planEmbedding = (plan as { embedding?: number[] }).embedding;
     if (!planEmbedding?.length) continue;
 
     const similarity = cosineSimilarity(queryEmbedding, planEmbedding);

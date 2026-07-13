@@ -6,7 +6,7 @@ const validChapter = (order: number) => ({
   estimatedMinutes: 45, completed: false, contentGenerated: false,
 });
 
-const validPlan = (chapters: any[]) => ({
+const validPlan = (chapters: Record<string, unknown>[]) => ({
   id: "plan-1",
   hobby: "guitar", currentLevel: "beginner" as const, targetLevel: "intermediate" as const,
   weeklyTimeHours: 5, estimatedDurationWeeks: 8,
@@ -36,8 +36,9 @@ describe("PlanRequestSchema", () => {
 describe("ChapterMetaSchema", () => {
   it("passes with valid chapter", () => expect(ChapterMetaSchema.safeParse(validChapter(1)).success).toBe(true));
   it("fails when summary is missing", () => {
-    const { summary, ...rest } = validChapter(1);
-    expect(ChapterMetaSchema.safeParse(rest).success).toBe(false);
+    const chapter = validChapter(1) as Record<string, unknown>;
+    delete chapter.summary;
+    expect(ChapterMetaSchema.safeParse(chapter).success).toBe(false);
   });
   it("defaults completed/contentGenerated to false", () => {
     const r = ChapterMetaSchema.safeParse(validChapter(1));
@@ -52,7 +53,7 @@ describe("PlanSchema", () => {
   it("fails with more than 10 chapters (12)", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 12 }, (_, i) => validChapter(i+1)))).success).toBe(false));
   it("fails when chapter summary is missing", () => {
     const chapters = Array.from({ length: 5 }, (_, i) => i === 0 ? { ...validChapter(1), summary: undefined } : validChapter(i+1));
-    expect(PlanSchema.safeParse(validPlan(chapters)).success).toBe(false);
+    expect(PlanSchema.safeParse(validPlan(chapters as Record<string, unknown>[])).success).toBe(false);
   });
 });
 
@@ -64,17 +65,17 @@ describe("ChapterContentSchema", () => {
   });
   it("fails when quiz passingScore is not 70", () => {
     const c = validContent();
-    (c.steps[5] as any).passingScore = 80;
+    (c.steps[5] as { passingScore?: number }).passingScore = 80;
     expect(ChapterContentSchema.safeParse(c).success).toBe(false);
   });
   it("fails when video has more than 2 search queries", () => {
     const c = validContent();
-    (c.steps[1] as any).searchQueries = ["q1","q2","q3"];
+    (c.steps[1] as { searchQueries?: string[] }).searchQueries = ["q1","q2","q3"];
     expect(ChapterContentSchema.safeParse(c).success).toBe(false);
   });
   it("passes with scenario interactive type", () => {
     const c = validContent();
-    (c.steps[4] as any) = { type: "interactive", activityType: "scenario", situation: "You need to pick a chord", choices: ["C","G"], bestChoice: "C" };
+    (c.steps[4] as Record<string, unknown>) = { type: "interactive", activityType: "scenario", situation: "You need to pick a chord", choices: ["C","G"], bestChoice: "C" };
     expect(ChapterContentSchema.safeParse(c).success).toBe(true);
   });
 });

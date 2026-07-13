@@ -1,5 +1,6 @@
 import Groq from "groq-sdk";
 import { env } from "../config/env";
+import { YouTubeVideo } from "./youtube.service";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
 
@@ -13,7 +14,7 @@ function parseDuration(duration: string): number {
   );
 }
 
-export function filterCandidates(videos: any[]): any[] {
+export function filterCandidates(videos: YouTubeVideo[]): YouTubeVideo[] {
   return videos
     .filter((video) => {
       const sec = parseDuration(video.duration);
@@ -24,11 +25,11 @@ export function filterCandidates(videos: any[]): any[] {
       const score = engagement * 100 + Math.log10(video.subscriberCount + 1);
       return { ...video, score };
     })
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => (b.score || 0) - (a.score || 0))
     .slice(0, 4);
 }
 
-export async function rankWithLLM(candidates: any[], query: string) {
+export async function rankWithLLM(candidates: YouTubeVideo[], query: string) {
   if (!candidates.length) return null;
 
   const prompt = `Given the search query: "${query}"

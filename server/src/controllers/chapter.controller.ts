@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { Plan } from "../models/Plan.model";
-import { ChapterContentSchema } from "../schemas/plan.schema";
 import { generateChapterContent } from "../services/groq.service";
 import { searchVideos } from "../services/youtube.service";
 import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
@@ -13,6 +12,7 @@ export async function chapterGenerateController(req: Request, res: Response, nex
     const planDoc = await Plan.findById(planId);
     if (!planDoc) { res.status(404).json({ error: "Plan not found" }); return; }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chapter = planDoc.chapters.find((c: any) => c.id === chapterId);
     if (!chapter) { res.status(404).json({ error: "Chapter not found" }); return; }
 
@@ -25,10 +25,11 @@ export async function chapterGenerateController(req: Request, res: Response, nex
       planDoc.hobby as string, planDoc.currentLevel as string, chapter.title as string, chapter.summary as string
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const videoStep = content.steps.find((s: any) => s.type === "video") as any;
     if (videoStep && videoStep.searchQueries?.length) {
       try {
-        const query = videoStep.searchQueries[0];
+        const query = videoStep.searchQueries[0] as string;
         
         const videos = await searchVideos(query);
         const candidates = filterCandidates(videos);
