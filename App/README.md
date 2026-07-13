@@ -82,7 +82,7 @@ The app heavily relies on an optimized state management architecture for offline
 
 ## 📂 Project Structure
 - `src/screens`: One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Dashboard, Profile).
-- `src/components`: Shared UI components, including `stepRenderers/` (one renderer per chapter step type) and `resourceRenderers/` (currently empty).
+- `src/components`: Shared UI components, including `stepRenderers/` (one renderer per chapter step type) and.
 - `src/navigation`: `RootNavigator.tsx` — the stack + bottom-tab navigator.
 - `src/store`: `planStore.ts` — the Zustand store (hobbies, chapter progress, XP/streak, onboarding draft fields), persisted via AsyncStorage.
 - `src/services`: `api.ts` — fetch calls to the backend. **Note:** `BASE_URL` is a hardcoded LAN IP — update it to your machine's local network IP before running against a local backend (not `localhost`, since physical devices/emulators can't reach it).

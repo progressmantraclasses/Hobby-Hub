@@ -8,6 +8,10 @@ import { Colors } from '../theme/colors';
 import { greeting, getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
 import { hobbyEmoji, SUGGESTED_HOBBIES } from '../constants/hobbies';
+import UserHeader from '../components/UserHeader';
+import ProgressBar from '../components/ProgressBar';
+import HobbyMiniCard from '../components/HobbyMiniCard';
+import QuestCard from '../components/QuestCard';
 
 export default function HomeScreen() {
   const nav = useNavigation<NativeStackNavigationProp<any>>();
@@ -66,25 +70,14 @@ export default function HomeScreen() {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-        <View style={s.topRow}>
-          <View>
-            <Text style={s.greet}>{greeting()} 👋</Text>
-            <Text style={s.username}>{userName}</Text>
-          </View>
-          <View style={s.streakBadge}>
-            <Text style={s.streakFire}>🔥</Text>
-            <Text style={s.streakNum}>{streak}d</Text>
-          </View>
-        </View>
+        <UserHeader userName={userName} streak={streak} greetingText={`${greeting()} 👋`} />
 
         <View style={s.xpCard}>
           <View style={s.xpRow}>
             <Text style={s.xpLabel}>Level {level}</Text>
             <Text style={s.xpVal}>{xpTotal} XP</Text>
           </View>
-          <View style={s.bar}>
-            <View style={[s.barFill, { width: `${xpProgress * 100}%` as any }]} />
-          </View>
+          <ProgressBar progress={xpProgress} style={{ marginBottom: 8 }} />
           <Text style={s.xpNext}>{xpToNext} XP to Level {level + 1}</Text>
         </View>
 
@@ -107,24 +100,13 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               ))}
             </View>
-            <TouchableOpacity
-              style={s.startCard}
+            <QuestCard
+              badgeText="CUSTOM QUEST"
+              title="Create Custom Hobby 💡"
+              subtitle="Type your own custom hobby and generate a customized roadmap."
+              icon="⚡"
               onPress={() => nav.navigate('Learn', { screen: 'Hobby' })}
-              activeOpacity={0.85}
-            >
-              <View style={s.questBadge}>
-                <Text style={s.questBadgeText}>CUSTOM QUEST</Text>
-              </View>
-              <View style={s.startContent}>
-                <View style={s.startLeft}>
-                  <Text style={s.startTitle}>Create Custom Hobby 💡</Text>
-                  <Text style={s.startSub}>Type your own custom hobby and generate a customized roadmap.</Text>
-                </View>
-                <View style={s.questIconContainer}>
-                  <Text style={s.questIcon}>⚡</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+            />
           </View>
         ) : (
           <>
@@ -152,40 +134,27 @@ export default function HomeScreen() {
                     const pct = hobbyCompletion(chapterProgress, plan.chapters);
                     const isActive = activeHobbyId === plan.hobby;
                     return (
-                      <TouchableOpacity
+                      <HobbyMiniCard
                         key={plan.hobby}
-                        style={[s.hobbyMini, isActive && s.hobbyMiniActive]}
+                        hobbyName={plan.hobby}
+                        emoji={hobbyEmoji(plan.hobby)}
+                        percentage={pct * 100}
+                        isActive={isActive}
                         onPress={() => setActiveHobby(plan.hobby)}
-                        activeOpacity={0.8}
-                      >
-                        <Text style={s.hobbyMiniEmoji}>{hobbyEmoji(plan.hobby)}</Text>
-                        <Text style={s.hobbyMiniName} numberOfLines={1}>{plan.hobby}</Text>
-                        <Text style={s.hobbyMiniPct}>{Math.round(pct * 100)}%</Text>
-                      </TouchableOpacity>
+                      />
                     );
                   })}
                 </ScrollView>
               </View>
             )}
 
-            <TouchableOpacity
-              style={s.startCard}
+            <QuestCard
+              badgeText="NEW QUEST"
+              title="Unlock a New Hobby 🎯"
+              subtitle="Pick another skill, set your commitment, and start leveling up."
+              icon="🚀"
               onPress={() => nav.navigate('Learn', { screen: 'Hobby' })}
-              activeOpacity={0.85}
-            >
-              <View style={s.questBadge}>
-                <Text style={s.questBadgeText}>NEW QUEST</Text>
-              </View>
-              <View style={s.startContent}>
-                <View style={s.startLeft}>
-                  <Text style={s.startTitle}>Unlock a New Hobby 🎯</Text>
-                  <Text style={s.startSub}>Pick another skill, set your commitment, and start leveling up.</Text>
-                </View>
-                <View style={s.questIconContainer}>
-                  <Text style={s.questIcon}>🚀</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
+            />
           </>
         )}
       </ScrollView>
@@ -197,19 +166,10 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.surface },
   scroll: { padding: 20, paddingBottom: 100 },
 
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  greet: { fontSize: 22, fontWeight: '800', color: Colors.dark },
-  username: { fontSize: 16, fontWeight: '700', color: Colors.primary, marginTop: 2 },
-  streakBadge: { backgroundColor: Colors.secondaryBg, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center', borderWidth: 1.5, borderColor: Colors.secondaryLight },
-  streakFire: { fontSize: 18 },
-  streakNum: { fontSize: 16, fontWeight: '900', color: Colors.secondary },
-
   xpCard: { backgroundColor: Colors.white, borderRadius: 18, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: Colors.grayLight },
   xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   xpLabel: { fontSize: 15, fontWeight: '800', color: Colors.dark },
   xpVal: { fontSize: 15, fontWeight: '700', color: Colors.primary },
-  bar: { height: 8, backgroundColor: Colors.grayLight, borderRadius: 6, overflow: 'hidden', marginBottom: 8 },
-  barFill: { height: 8, backgroundColor: Colors.primary, borderRadius: 6 },
   xpNext: { fontSize: 12, color: Colors.gray, fontWeight: '600' },
 
   continueCard: { backgroundColor: Colors.primaryBg, borderRadius: 20, padding: 22, marginBottom: 20, borderWidth: 1, borderColor: Colors.primaryLight },
@@ -221,62 +181,6 @@ const s = StyleSheet.create({
 
   sectionTitle: { fontSize: 15, fontWeight: '800', color: Colors.dark, marginBottom: 12 },
   hobbyRow: { paddingRight: 8, gap: 10 },
-  hobbyMini: { backgroundColor: Colors.white, borderRadius: 14, padding: 14, alignItems: 'center', minWidth: 90, borderWidth: 1.5, borderColor: Colors.grayLight },
-  hobbyMiniActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryBg },
-  hobbyMiniEmoji: { fontSize: 24, marginBottom: 6 },
-  hobbyMiniName: { fontSize: 11, fontWeight: '700', color: Colors.dark, marginBottom: 4, textAlign: 'center' },
-  hobbyMiniPct: { fontSize: 12, fontWeight: '800', color: Colors.primary },
-
-  startCard: {
-    backgroundColor: Colors.white,
-    borderRadius: 20,
-    padding: 20,
-    marginTop: 20,
-    marginBottom: 8,
-    borderWidth: 1.5,
-    borderColor: Colors.primaryLight,
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  questBadge: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderBottomLeftRadius: 12,
-  },
-  questBadgeText: {
-    color: Colors.white,
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 1.2,
-  },
-  startContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6, // Prevents badge overlap
-  },
-  startLeft: { flex: 1, paddingRight: 16 },
-  startTitle: { fontSize: 17, fontWeight: '900', color: Colors.dark, marginBottom: 5 },
-  startSub: { fontSize: 13, color: Colors.gray, lineHeight: 18 },
-  questIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primaryBg,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.primaryLight,
-  },
-  questIcon: { fontSize: 24 },
 
   emptyState: { marginTop: 10 },
   suggestionGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
