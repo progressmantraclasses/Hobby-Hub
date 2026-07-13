@@ -1,16 +1,27 @@
 # Hobby Hub - Backend Server
 
-This is the Node.js / Express backend server for **Hobby Hub**. It handles AI integration, rate limiting, and customized plan generation logic with an optimized multi-tier caching system.
+This is the Node.js / Express backend server for **Hobby Hub**. It handles AI integration, rate limiting, and customized plan generation logic with a two-tier caching system.
 
 ## ⚙️ Features & Architecture
 
 - **Express Server**: Fast, unopinionated web framework for Node.js REST APIs.
-- **Multi-Tier Caching System**: 
-  - **Upstash Redis**: Fast, in-memory caching to instantly serve exact matches.
-  - **MongoDB Cache**: Persistent cache for successfully generated roadmaps.
-  - **Semantic Vector Cache**: Utilizes cosine similarity to match conceptually similar queries (e.g., "guitar basics" vs "acoustic guitar").
+- **Two-Tier Caching System**:
+  - **Upstash Redis**: Fast, in-memory cache keyed on `hobby:level:weeklyTime`, serves exact matches instantly.
+  - **MongoDB Cache**: Persistent cache for successfully generated roadmaps and per-chapter content, falls back to Redis on a hit.
 - **AI Integration**: Communicates with the Groq SDK (Llama-3.1 model) to generate fully structured, gamified hobby roadmaps in JSON format.
 - **Rate Limiting**: Protects expensive LLM routes using Redis sorted-set window rate limiting.
+
+> `services/semanticCache.service.ts` scaffolds a third, semantic-similarity cache tier (cosine similarity over query embeddings) but is not yet wired into any controller — embedding generation is an open `TODO`, so it currently has no effect on requests.
+
+## 📂 Project Structure
+- `src/config`: `env.ts` (validated env vars), `mongo.ts`, `redis.ts`
+- `src/controllers`: `plan.controller.ts`, `chapter.controller.ts`, `video.controller.ts`
+- `src/routes`: route definitions, one file per resource
+- `src/services`: `groq.service.ts` (LLM calls), `youtube.service.ts`, `videoFilter.service.ts`, `semanticCache.service.ts`
+- `src/models`: Mongoose schemas (`Plan.model.ts`, `VideoCache.model.ts`)
+- `src/schemas`: Zod schemas, shared shape with the frontend
+- `src/middleware`: `rateLimiter`, `validate`, `errorHandler`
+- `src/tests`: Jest test suites
 
 ## 🛠 Tech Stack
 
@@ -43,10 +54,9 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - **Query Params:** `?query="How to hold a guitar pick"`
 
 ### 3. Generate Chapter Content
-**Endpoint:** `POST /api/chapters/:chapterId/generate`
-- **Description:** Generates expanded, in-depth content for a specific chapter inside a generated plan. This handles dynamic content loading for deep dives into specific topics.
-- **Params:** `chapterId` (ID string)
-- **Body:** Contains contextual plan details.
+**Endpoint:** `POST /api/plans/:planId/chapters/:chapterId/generate`
+- **Description:** Generates expanded, in-depth content (the 7-step learning flow) for one chapter of a specific plan. Scoped by `planId` so that chapters with the same slug across different plans never collide. Returns the cached `steps` immediately if this chapter was already generated.
+- **Params:** `planId` (Mongo `_id` of the plan), `chapterId` (chapter slug, unique within that plan)
 
 ## 🚀 Getting Started
 

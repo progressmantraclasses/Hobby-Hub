@@ -81,6 +81,13 @@ The app heavily relies on an optimized state management architecture for offline
      Runs ESLint to check for code issues.
 
 ## 📂 Project Structure
-- `src/screens`: Main UI screens (e.g., Dashboard, TimeCommitment, ChapterDetail).
-- `src/services`: API handlers (`api.ts`) that connect to the backend server.
-- `src/store`: Zustand stores (`planStore.ts`) managing the persistent gamification logic.
+- `src/screens`: One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Dashboard, Profile).
+- `src/components`: Shared UI components, including `stepRenderers/` (one renderer per chapter step type) and `resourceRenderers/` (currently empty).
+- `src/navigation`: `RootNavigator.tsx` — the stack + bottom-tab navigator.
+- `src/store`: `planStore.ts` — the Zustand store (hobbies, chapter progress, XP/streak, onboarding draft fields), persisted via AsyncStorage.
+- `src/services`: `api.ts` — fetch calls to the backend. **Note:** `BASE_URL` is a hardcoded LAN IP — update it to your machine's local network IP before running against a local backend (not `localhost`, since physical devices/emulators can't reach it).
+- `src/hooks`: `useAsyncTask` (shared loading/error/success state for async calls), `useIsWideScreen`.
+- `src/constants`: Static config data (badges, hobby lists/emoji, levels, chapter-status labels/colors, rank thresholds, tab icons).
+- `src/theme`: `colors.ts` — the app's single design-token color palette.
+- `src/schemas`: Zod schemas matching the backend's response shapes.
+- `src/utils`: Pure helper functions (XP/level math, streak-date math).
