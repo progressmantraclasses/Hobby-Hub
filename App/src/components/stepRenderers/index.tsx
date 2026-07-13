@@ -107,10 +107,10 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
             if (isSelected) {
               if (isSubmitted) {
                 if (isCorrect) {
-                  optionStyle.push({ borderColor: Colors.success, backgroundColor: '#E6F4EA' });
+                  optionStyle.push({ borderColor: Colors.success, backgroundColor: Colors.successBg });
                   optionTextStyle.push({ color: Colors.success, fontWeight: '700' });
                 } else {
-                  optionStyle.push({ borderColor: Colors.danger, backgroundColor: '#FCE8E6' });
+                  optionStyle.push({ borderColor: Colors.danger, backgroundColor: Colors.dangerBg });
                   optionTextStyle.push({ color: Colors.danger, fontWeight: '700' });
                 }
               } else {
@@ -119,7 +119,7 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
               }
             } else if (isSubmitted && isAnswerCorrect) {
               // Highlight the correct answer if the user picked wrong
-              optionStyle.push({ borderColor: Colors.success, borderWidth: 2, backgroundColor: '#E6F4EA' });
+              optionStyle.push({ borderColor: Colors.success, borderWidth: 2, backgroundColor: Colors.successBg });
               optionTextStyle.push({ color: Colors.success, fontWeight: '700' });
             }
 
@@ -151,7 +151,7 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
       {isSubmitted && (
         <View style={[
           s.feedbackBanner,
-          isCorrect ? { backgroundColor: '#E6F4EA', borderColor: Colors.success } : { backgroundColor: '#FCE8E6', borderColor: Colors.danger }
+          isCorrect ? { backgroundColor: Colors.successBg, borderColor: Colors.success } : { backgroundColor: Colors.dangerBg, borderColor: Colors.danger }
         ]}>
           <Text style={[s.feedbackTitle, isCorrect ? { color: Colors.success } : { color: Colors.danger }]}>
             {isCorrect ? '🎉 Correct Answer!' : '❌ Incorrect Answer'}

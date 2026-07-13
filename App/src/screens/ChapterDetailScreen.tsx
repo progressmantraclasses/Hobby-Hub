@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 13, fontWeight: '700' },
   order: { fontSize: 12, fontWeight: '800', color: Colors.primaryMid, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 8 },
   title: { fontSize: 26, fontWeight: '800', color: Colors.dark, lineHeight: 34, marginBottom: 14 },
-  summary: { fontSize: 15, color: '#475569', lineHeight: 24, marginBottom: 16 },
+  summary: { fontSize: 15, color: Colors.textSecondary, lineHeight: 24, marginBottom: 16 },
   meta: { fontSize: 13, color: Colors.gray, fontWeight: '600', marginBottom: 28 },
   error: { color: Colors.danger, marginTop: 10, fontWeight: '600' },
 

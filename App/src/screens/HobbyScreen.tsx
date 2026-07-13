@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column', alignItems: 'center', backgroundColor: Colors.white,
     paddingVertical: 14, paddingHorizontal: 4, borderRadius: 16, marginBottom: 12,
     borderWidth: 1.5, borderColor: Colors.grayLight,
-    shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 6, elevation: 1,
+    shadowColor: Colors.black, shadowOpacity: 0.02, shadowRadius: 6, elevation: 1,
   },
   chipActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryBg },
   chipEmoji: { fontSize: 26, marginBottom: 6 },

@@ -217,7 +217,7 @@ const s = StyleSheet.create({
   card: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16,
     marginBottom: 14, borderWidth: 1.5, borderColor: Colors.grayLight, position: 'relative', zIndex: 1,
-    shadowColor: '#000', shadowOpacity: 0.02, shadowRadius: 8, elevation: 1
+    shadowColor: Colors.black, shadowOpacity: 0.02, shadowRadius: 8, elevation: 1
   },
   cardActive: {
     borderColor: Colors.primary, borderWidth: 2, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 12, elevation: 3
@@ -242,10 +242,10 @@ const s = StyleSheet.create({
 
   cardBody: { flex: 1 },
   cardTitle: { fontSize: 15, fontWeight: '700', color: Colors.dark, marginBottom: 3 },
-  cardTitleDone: { textDecorationLine: 'line-through', color: '#94A3B8' },
+  cardTitleDone: { textDecorationLine: 'line-through', color: Colors.textMuted },
   cardSub: { fontSize: 12, color: Colors.gray, lineHeight: 17, marginBottom: 8 },
   cardMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
-  metaTime: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
+  metaTime: { fontSize: 11, color: Colors.textMuted, fontWeight: '600' },
   metaXP: { fontSize: 11, color: Colors.primary, fontWeight: '700', backgroundColor: Colors.primaryBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 },
   pill: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8 },
   pillText: { fontSize: 11, fontWeight: '700' },

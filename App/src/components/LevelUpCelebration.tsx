@@ -31,8 +31,8 @@ export default function LevelUpCelebration({ level, onDone }: Props) {
 }
 
 const s = StyleSheet.create({
-  overlay: { ...StyleSheet.absoluteFill, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 999 },
-  card: { backgroundColor: Colors.white, borderRadius: 24, padding: 40, alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 20, elevation: 20 },
+  overlay: { ...StyleSheet.absoluteFill, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.overlay, zIndex: 999 },
+  card: { backgroundColor: Colors.white, borderRadius: 24, padding: 40, alignItems: 'center', shadowColor: Colors.black, shadowOpacity: 0.3, shadowRadius: 20, elevation: 20 },
   emoji: { fontSize: 52, marginBottom: 12 },
   title: { fontSize: 28, fontWeight: '900', color: Colors.dark, marginBottom: 6 },
   sub: { fontSize: 16, color: Colors.gray, fontWeight: '600' },

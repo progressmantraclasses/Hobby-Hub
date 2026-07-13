@@ -166,7 +166,7 @@ const s = StyleSheet.create({
   nameInput: { fontSize: 24, fontWeight: '900', color: Colors.dark, letterSpacing: -0.5, padding: 0, margin: 0, borderBottomWidth: 1, borderBottomColor: Colors.primary },
   userTitle: { fontSize: 14, color: Colors.gray, fontWeight: '600', marginTop: 2 },
 
-  xpCard: { backgroundColor: '#F4F0FF', borderRadius: 24, padding: 24, marginBottom: 24, borderWidth: 1.5, borderColor: Colors.primaryLight, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 15, elevation: 4 },
+  xpCard: { backgroundColor: Colors.primaryBg, borderRadius: 24, padding: 24, marginBottom: 24, borderWidth: 1.5, borderColor: Colors.primaryLight, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 15, elevation: 4 },
   xpHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   levelText: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 4 },
   levelNum: { fontSize: 32, fontWeight: '900', color: Colors.dark },
@@ -176,7 +176,7 @@ const s = StyleSheet.create({
   barFill: { height: 10, backgroundColor: Colors.primary, borderRadius: 8 },
   xpNext: { fontSize: 13, color: Colors.gray, fontWeight: '600', textAlign: 'center' },
 
-  statsRow: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: 20, paddingVertical: 20, marginBottom: 32, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
+  statsRow: { flexDirection: 'row', backgroundColor: Colors.white, borderRadius: 20, paddingVertical: 20, marginBottom: 32, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: Colors.black, shadowOpacity: 0.03, shadowRadius: 10, elevation: 2 },
   statBox: { flex: 1, alignItems: 'center' },
   statEmoji: { fontSize: 24, marginBottom: 8 },
   statVal: { fontSize: 20, fontWeight: '900', color: Colors.dark, marginBottom: 2 },
@@ -193,13 +193,13 @@ const s = StyleSheet.create({
   badgeLocked: { backgroundColor: Colors.grayLight, opacity: 0.6 },
   badgeIconWrap: { width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   badgeIconWrapEarned: { backgroundColor: Colors.primaryBg },
-  badgeIconWrapLocked: { backgroundColor: 'rgba(0,0,0,0.05)' },
+  badgeIconWrapLocked: { backgroundColor: Colors.overlaySubtle },
   badgeIcon: { fontSize: 28 },
   badgeTitle: { fontSize: 14, fontWeight: '800', color: Colors.dark, marginBottom: 4, textAlign: 'center' },
   badgeDesc: { fontSize: 11, color: Colors.gray, textAlign: 'center', lineHeight: 16 },
   badgeTextLocked: { color: Colors.gray },
 
-  hobbyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
+  hobbyRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.white, borderRadius: 18, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: Colors.grayLight, shadowColor: Colors.black, shadowOpacity: 0.03, shadowRadius: 8, elevation: 2 },
   hobbyEmoji: { fontSize: 32, marginRight: 16 },
   hobbyContent: { flex: 1 },
   hobbyInfo: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'center' },

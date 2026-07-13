@@ -110,7 +110,7 @@ const s = StyleSheet.create({
   emptyText: { fontSize: 16, color: Colors.gray, marginBottom: 16 },
 
   card: { backgroundColor: Colors.white, borderRadius: 20, padding: 20, marginBottom: 16, borderWidth: 1.5, borderColor: Colors.grayLight, shadowColor: Colors.primary, shadowOpacity: 0.08, shadowRadius: 15, elevation: 4, overflow: 'hidden' },
-  cardActive: { borderColor: Colors.primary, backgroundColor: '#FAFAFF' },
+  cardActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryTint },
   activeIndicator: { position: 'absolute', top: 0, bottom: 0, left: 0, width: 5, backgroundColor: Colors.primary },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   emoji: { fontSize: 40, marginRight: 16 },

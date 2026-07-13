@@ -17,7 +17,7 @@ export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) =>
   return (
     <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
       <Svg width={size} height={size} style={{ position: 'absolute' }}>
-        <Circle stroke="rgba(255,255,255,0.25)" fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
+        <Circle stroke={Colors.overlayLight} fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
         <Circle
           stroke={Colors.white}
           fill="none"
