@@ -25,9 +25,12 @@ export async function searchVideos(query: string): Promise<YouTubeVideo[]> {
   // 1. search.list
   const searchUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(queryNormalized)}&type=video&key=${env.YOUTUBE_API_KEY}`;
   const searchRes = await fetch(searchUrl);
-  const searchData = (await searchRes.json()) as { items?: Array<{ id?: { videoId?: string }; snippet?: { channelId?: string } }> };
+  const searchData = (await searchRes.json()) as { items?: Array<{ id?: { videoId?: string }; snippet?: { channelId?: string } }>; error?: { message?: string } };
+  if (!searchRes.ok) {
+    throw new Error(`YouTube search.list failed: ${searchData.error?.message || searchRes.statusText}`);
+  }
   const items = searchData.items || [];
-  
+
   if (!items.length) return [];
 
   const videoIds = items.map((item) => item.id?.videoId).filter(Boolean);
@@ -43,13 +46,20 @@ export async function searchVideos(query: string): Promise<YouTubeVideo[]> {
       contentDetails?: { duration?: string };
       statistics?: { viewCount?: string; likeCount?: string; commentCount?: string };
     }>;
+    error?: { message?: string };
   };
+  if (!videosRes.ok) {
+    throw new Error(`YouTube videos.list failed: ${videosData.error?.message || videosRes.statusText}`);
+  }
   const videoDetails = videosData.items || [];
 
   // 3. channels.list for subscriberCount
   const channelsUrl = `https://www.googleapis.com/youtube/v3/channels?part=statistics&id=${Array.from(new Set(channelIds)).join(",")}&key=${env.YOUTUBE_API_KEY}`;
   const channelsRes = await fetch(channelsUrl);
-  const channelsData = (await channelsRes.json()) as { items?: Array<{ id: string; statistics?: { subscriberCount?: string } }> };
+  const channelsData = (await channelsRes.json()) as { items?: Array<{ id: string; statistics?: { subscriberCount?: string } }>; error?: { message?: string } };
+  if (!channelsRes.ok) {
+    throw new Error(`YouTube channels.list failed: ${channelsData.error?.message || channelsRes.statusText}`);
+  }
   const channelDetails = channelsData.items || [];
 
   const subsMap = new Map(
@@ -73,6 +83,10 @@ export async function searchVideos(query: string): Promise<YouTubeVideo[]> {
     };
   });
 
-  await VideoCache.create({ queryNormalized, videos: formattedVideos });
+  // Only cache a real result — caching an empty list here would permanently "poison" this
+  // query for 7 days (the TTL below) even after a transient API failure clears up.
+  if (formattedVideos.length) {
+    await VideoCache.create({ queryNormalized, videos: formattedVideos });
+  }
   return formattedVideos;
 }

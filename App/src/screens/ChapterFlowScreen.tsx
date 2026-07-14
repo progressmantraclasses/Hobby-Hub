@@ -103,15 +103,16 @@ export default function ChapterFlowScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      {/* Header Progress */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn} activeOpacity={0.7}>
           <Text style={styles.closeText}>✕</Text>
         </TouchableOpacity>
         <View style={styles.progressBar}>
           <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
         </View>
-        <Text style={styles.progressText}>{currentStepIndex + 1}/{steps.length}</Text>
+        <View style={styles.progressChip}>
+          <Text style={styles.progressText}>{currentStepIndex + 1}/{steps.length}</Text>
+        </View>
       </View>
 
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
@@ -130,17 +131,18 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     backgroundColor: Colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: Colors.grayLight,
   },
-  closeBtn: { padding: 6, marginRight: 10 },
-  closeText: { fontSize: 18, color: Colors.gray, fontWeight: 'bold' },
-  progressBar: { flex: 1, height: 6, backgroundColor: Colors.grayLight, borderRadius: 3, overflow: 'hidden', marginRight: 12 },
-  progressFill: { height: 6, backgroundColor: Colors.primary, borderRadius: 3 },
-  progressText: { fontSize: 12, fontWeight: '800', color: Colors.gray },
+  closeBtn: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.white, borderWidth: 1, borderColor: Colors.grayLight, justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  closeText: { fontSize: 15, color: Colors.gray, fontWeight: '800' },
+  progressBar: { flex: 1, height: 8, backgroundColor: Colors.grayLight, borderRadius: 4, overflow: 'hidden', marginRight: 12 },
+  progressFill: { height: 8, backgroundColor: Colors.primary, borderRadius: 4 },
+  progressChip: { backgroundColor: Colors.primaryBg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12 },
+  progressText: { fontSize: 12, fontWeight: '800', color: Colors.primary },
   content: { flex: 1 },
   scrollContent: { padding: 24, paddingBottom: 40 },
   errorText: { color: Colors.danger, fontSize: 16 },

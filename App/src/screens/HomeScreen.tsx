@@ -72,7 +72,7 @@ export default function HomeScreen() {
             <Text style={s.xpLabel}>Level {level}</Text>
             <Text style={s.xpVal}>{xpTotal} XP</Text>
           </View>
-          <ProgressBar progress={xpProgress} style={{ marginBottom: 8 }} />
+          <ProgressBar progress={xpProgress} style={s.progressBarSpacing} />
           <Text style={s.xpNext}>{xpToNext} XP to Level {level + 1}</Text>
         </View>
 
@@ -162,6 +162,7 @@ const s = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 100 },
 
   xpCard: { backgroundColor: Colors.white, borderRadius: 18, padding: 18, marginBottom: 16, borderWidth: 1, borderColor: Colors.grayLight },
+  progressBarSpacing: { marginBottom: 8 },
   xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
   xpLabel: { fontSize: 15, fontWeight: '800', color: Colors.dark },
   xpVal: { fontSize: 15, fontWeight: '700', color: Colors.primary },

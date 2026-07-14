@@ -12,7 +12,8 @@ import { LearnScreenNavigationProp } from '../navigation/types';
 export default function TimeCommitmentScreen() {
   const { hobby, level, addHobby } = usePlanStore();
   const { status, error: fetchError, run } = useAsyncTask(generatePlan);
-  const loading = status === 'loading';
+  const [navigating, setNavigating] = useState(false);
+  const loading = status === 'loading' || navigating;
   const [validationError, setValidationError] = useState('');
   const [hours, setHours] = useState('');
   const navigation = useNavigation<LearnScreenNavigationProp<'TimeCommitment'>>();
@@ -31,6 +32,10 @@ export default function TimeCommitmentScreen() {
     if (!hobby || !level) return;
     try {
       const plan = await run({ hobby, level, weeklyTime: time });
+      // Keep the loading view up until the screen actually unmounts — otherwise the
+      // hook's status flips to 'success' a tick before navigate() takes effect, and
+      // the form flashes back into view in between.
+      setNavigating(true);
       addHobby(plan);
       navigation.navigate('CourseDetail');
     } catch {

@@ -61,15 +61,11 @@ export default function CourseDetailScreen() {
           </View>
         </View>
 
-        <View style={s.goalCard}>
-          <Text style={s.sectionLabel}>🎯 YOUR GOAL</Text>
+        <View style={s.aboutCard}>
+          <Text style={s.sectionLabel}>YOUR GOAL</Text>
           <Text style={s.goalText}>{plan.goal}</Text>
-        </View>
-
-
-
-        <View style={s.overviewSection}>
-          <Text style={s.sectionLabel}>📖 OVERVIEW</Text>
+          <View style={s.aboutDivider} />
+          <Text style={s.sectionLabel}>OVERVIEW</Text>
           <Text style={s.overviewText}>{plan.overview}</Text>
         </View>
 
@@ -90,14 +86,14 @@ export default function CourseDetailScreen() {
 
         <View style={s.progressCard}>
           <View style={s.xpRow}>
-            <Text style={s.progressTitle}>🏆 Campaign Progress</Text>
+            <Text style={s.progressTitle}>🏆 COURSE PROGRESS</Text>
             <Text style={s.progressPercentage}>{Math.round(progress * 100)}%</Text>
           </View>
-          <ProgressBar progress={progress} style={{ marginBottom: 6 }} />
+          <ProgressBar progress={progress} style={s.progressBarSpacing} />
           <Text style={s.progressSub}>{completed} of {chapters.length} chapters completed</Text>
         </View>
 
-        <Text style={s.chapHeading}>📚 Learning Path</Text>
+        <Text style={s.chapHeading}>Learning Path</Text>
 
         <View style={s.chaptersListContainer}>
           <View style={s.timelineLine} />
@@ -142,10 +138,12 @@ const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.surface }, scroll: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 },
   emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32 }, emptyIcon: { fontSize: 56, marginBottom: 16 }, emptyTitle: { fontSize: 22, fontWeight: '800', color: Colors.dark, marginBottom: 8 }, emptySub: { fontSize: 15, color: Colors.gray, textAlign: 'center', lineHeight: 22 },
   hobbyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }, hobbyLabel: { fontSize: 10, fontWeight: '800', color: Colors.primary, letterSpacing: 2, marginBottom: 3 }, hobbyName: { fontSize: 28, fontWeight: '900', color: Colors.dark }, rankBadge: { backgroundColor: Colors.primaryBg, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: Colors.primaryLight }, rankText: { fontSize: 13, fontWeight: '700', color: Colors.primary },
-  goalCard: { backgroundColor: Colors.primaryBg, borderRadius: 18, padding: 20, marginBottom: 14, borderWidth: 1, borderColor: Colors.primaryCard }, sectionLabel: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 8 }, goalText: { fontSize: 16, fontWeight: '700', color: Colors.dark, lineHeight: 24 },
-  overviewSection: { paddingHorizontal: 4, marginBottom: 20 }, overviewText: { fontSize: 14, color: Colors.gray, lineHeight: 22 },
+  aboutCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 20, marginBottom: 16, borderWidth: 1.5, borderColor: Colors.grayLight }, sectionLabel: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5, marginBottom: 8 }, goalText: { fontSize: 16, fontWeight: '700', color: Colors.dark, lineHeight: 24 },
+  aboutDivider: { height: 1, backgroundColor: Colors.grayLight, marginVertical: 16 },
+  overviewText: { fontSize: 14, color: Colors.gray, lineHeight: 22 },
   statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20, gap: 8 }, statCard: { flex: 1, backgroundColor: Colors.white, borderRadius: 16, paddingVertical: 12, alignItems: 'center', borderWidth: 1.5, borderColor: Colors.grayLight, shadowColor: Colors.primary, shadowOpacity: 0.03, shadowRadius: 8, elevation: 1 }, statEmoji: { fontSize: 18, marginBottom: 4 }, statValue: { fontSize: 13, fontWeight: '900', color: Colors.dark }, statLabel: { fontSize: 8, color: Colors.gray, fontWeight: '700', textTransform: 'uppercase', marginTop: 2, textAlign: 'center' },
-  progressCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 18, marginBottom: 24, borderWidth: 1.5, borderColor: Colors.grayLight }, progressTitle: { fontSize: 14, fontWeight: '800', color: Colors.dark }, progressPercentage: { fontSize: 15, fontWeight: '900', color: Colors.primary }, progressSub: { fontSize: 11, color: Colors.gray, fontWeight: '600', marginTop: 6 },
+  progressCard: { backgroundColor: Colors.white, borderRadius: 20, padding: 18, marginBottom: 24, borderWidth: 1.5, borderColor: Colors.grayLight }, progressTitle: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1.5 }, progressPercentage: { fontSize: 15, fontWeight: '900', color: Colors.dark }, progressSub: { fontSize: 11, color: Colors.gray, fontWeight: '600', marginTop: 6 },
+  progressBarSpacing: { marginBottom: 6 },
   xpRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, alignItems: 'center' }, chapHeading: { fontSize: 16, fontWeight: '900', color: Colors.dark, marginBottom: 16, letterSpacing: -0.5 },
   chaptersListContainer: { position: 'relative' }, timelineLine: { position: 'absolute', left: 32, top: 20, bottom: 20, width: 3, backgroundColor: Colors.primaryLight, zIndex: 0 },
   fab: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 8 }, fabBtn: { backgroundColor: Colors.primary, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 20, shadowColor: Colors.primary, shadowOpacity: 0.4, shadowRadius: 14, elevation: 8 }, fabSub: { fontSize: 10, fontWeight: '800', color: Colors.primaryLight, letterSpacing: 1.5, marginBottom: 3 }, fabTitle: { fontSize: 15, fontWeight: '700', color: Colors.white }, footerSpacer: { height: 110 },

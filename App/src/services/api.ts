@@ -1,9 +1,41 @@
+import { NativeModules, Platform } from 'react-native';
 import { PlanRequest, Plan, PlanSchema, ChapterContentSchema, ChapterContent } from '../schemas/plan.schema';
 
-const BASE_URL = 'https://apis.codespirit.in/api';
+const API_PORT = 5000;
+// Generation can internally retry up to 3x against the LLM (e.g. when it returns
+// invalid JSON), so a short timeout here fires while the server is still legitimately
+// working — the client gives up, the server doesn't, and a user retry then starts a
+// second, duplicate generation for the same request. Comfortably exceed worst case.
+const REQUEST_TIMEOUT_MS = 90000;
+
+function getDevHost(): string {
+  const scriptURL: string | undefined = NativeModules.SourceCode?.scriptURL;
+  const match = scriptURL?.match(/^https?:\/\/([^/:]+)/);
+  if (match) return match[1];
+  return Platform.OS === 'android' ? '192.168.1.34' : 'localhost';
+}
+
+const BASE_URL = __DEV__
+  ? `http://${getDevHost()}:${API_PORT}/api`
+  : 'https://apis.codespirit.in/api';
+
+async function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your connection and try again.');
+    }
+    throw new Error('Network error. Please check your connection and try again.');
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 export const generatePlan = async (request: PlanRequest): Promise<Plan> => {
-  const response = await fetch(`${BASE_URL}/generate-plan`, {
+  const response = await fetchWithTimeout(`${BASE_URL}/generate-plan`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),
@@ -21,7 +53,7 @@ export const generatePlan = async (request: PlanRequest): Promise<Plan> => {
 };
 
 export const generateChapter = async (planId: string, chapterId: string): Promise<ChapterContent> => {
-  const response = await fetch(`${BASE_URL}/plans/${planId}/chapters/${chapterId}/generate`, {
+  const response = await fetchWithTimeout(`${BASE_URL}/plans/${planId}/chapters/${chapterId}/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
   });
@@ -39,4 +71,3 @@ export const generateChapter = async (planId: string, chapterId: string): Promis
   }
   return parsed.data;
 };
-

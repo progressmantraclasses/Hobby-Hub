@@ -7,9 +7,19 @@ interface Props {
   progress: number;
   size?: number;
   strokeWidth?: number;
+  trackColor?: string;
+  progressColor?: string;
+  textColor?: string;
 }
 
-export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) => {
+export const ProgressRing = ({
+  progress,
+  size = 60,
+  strokeWidth = 6,
+  trackColor = Colors.overlayLight,
+  progressColor = Colors.white,
+  textColor = Colors.white,
+}: Props) => {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - progress * circumference;
@@ -17,9 +27,9 @@ export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) =>
   return (
     <View style={[styles.container, { width: size, height: size }]}>
       <Svg width={size} height={size} style={styles.svg}>
-        <Circle stroke={Colors.overlayLight} fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
+        <Circle stroke={trackColor} fill="none" cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} />
         <Circle
-          stroke={Colors.white}
+          stroke={progressColor}
           fill="none"
           cx={size / 2} cy={size / 2} r={radius}
           strokeWidth={strokeWidth}
@@ -30,7 +40,7 @@ export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) =>
           rotation="-90"
         />
       </Svg>
-      <Text style={styles.text}>{Math.round(progress * 100)}%</Text>
+      <Text style={[styles.text, { color: textColor }]}>{Math.round(progress * 100)}%</Text>
     </View>
   );
 };
@@ -38,5 +48,5 @@ export const ProgressRing = ({ progress, size = 60, strokeWidth = 6 }: Props) =>
 const styles = StyleSheet.create({
   container: { justifyContent: 'center', alignItems: 'center' },
   svg: { position: 'absolute' },
-  text: { fontSize: 14, fontWeight: '800', color: Colors.white },
+  text: { fontSize: 14, fontWeight: '800' },
 });

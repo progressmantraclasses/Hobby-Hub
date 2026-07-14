@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
-import { PlanRequestSchema, PlanSchema, type Plan } from "../schemas/plan.schema";
+import { PlanRequestSchema, PlanSchema, type Plan, type PlanRequest } from "../schemas/plan.schema";
 import { generatePlan } from "../services/groq.service";
 import { generateEmbedding, findSimilarPlan } from "../services/semanticCache.service";
 import { redis } from "../config/redis";
@@ -8,6 +8,32 @@ import { Plan as PlanModel } from "../models/Plan.model";
 import { normalizeQuery } from "../utils/normalizeQuery";
 import { logger } from "../utils/logger";
 import { REDIS_CACHE_TTL } from "../config/constants";
+
+// Coalesces concurrent cache-miss requests for the same normalized key onto a single
+// in-flight generation. Without this, two requests that both miss the cache — e.g. a
+// client retrying after its own request timed out while the first call was still
+// generating — each kick off their own full (slow, costly) Groq generation.
+const inFlightGenerations = new Map<string, Promise<Plan>>();
+
+async function resolveAndCachePlan(key: string, requestData: PlanRequest): Promise<Plan> {
+  const { hobby, level, weeklyTime } = requestData;
+  const queryEmbedding = await generateEmbedding(hobby.trim().toLowerCase());
+
+  const similarDoc = await findSimilarPlan(queryEmbedding, level, weeklyTime);
+  if (similarDoc) {
+    logger.info(`[semantic-hit] ${key}`);
+    const plan = PlanSchema.parse({ ...similarDoc, id: similarDoc._id.toString() });
+    await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
+    return plan;
+  }
+
+  logger.info(`[groq-miss] ${key}`);
+  const generated = await generatePlan(requestData);
+  const created = await PlanModel.create({ ...generated, normalizedQuery: key, embedding: queryEmbedding });
+  const plan = PlanSchema.parse({ ...generated, id: created._id.toString() });
+  await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
+  return plan;
+}
 
 export async function planController(req: Request, res: Response, next: NextFunction) {
   const parsed = PlanRequestSchema.safeParse(req.body);
@@ -36,23 +62,13 @@ export async function planController(req: Request, res: Response, next: NextFunc
       return;
     }
 
-    const queryEmbedding = await generateEmbedding(hobby.trim().toLowerCase());
-
-    const similarDoc = await findSimilarPlan(queryEmbedding, level, weeklyTime);
-    if (similarDoc) {
-      logger.info(`[semantic-hit] ${key}`);
-      const plan = PlanSchema.parse({ ...similarDoc, id: similarDoc._id.toString() });
-      await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
-      res.json(plan);
-      return;
+    let generation = inFlightGenerations.get(key);
+    if (!generation) {
+      generation = resolveAndCachePlan(key, parsed.data).finally(() => inFlightGenerations.delete(key));
+      inFlightGenerations.set(key, generation);
     }
 
-    logger.info(`[groq-miss] ${key}`);
-    const generated = await generatePlan(parsed.data);
-    const created = await PlanModel.create({ ...generated, normalizedQuery: key, embedding: queryEmbedding });
-    const plan = PlanSchema.parse({ ...generated, id: created._id.toString() });
-    await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
-    res.json(plan);
+    res.json(await generation);
   } catch (err) {
     if (err instanceof ZodError) {
       res.status(500).json({ error: "AI returned invalid data", details: err.flatten() });

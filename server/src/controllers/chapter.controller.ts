@@ -4,8 +4,49 @@ import { Plan } from "../models/Plan.model";
 import { generateChapterContent } from "../services/groq.service";
 import { searchVideos } from "../services/youtube.service";
 import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
-import type { VideoStep } from "../schemas/plan.schema";
+import type { ChapterContent, VideoStep } from "../schemas/plan.schema";
 import { logger } from "../utils/logger";
+
+// Same in-flight coalescing as plan.controller.ts: a duplicate request for the same
+// planId+chapterId (e.g. a client retry after its own request timed out while the first
+// call was still generating) attaches to the generation already in progress instead of
+// starting a second one.
+const inFlightGenerations = new Map<string, Promise<ChapterContent>>();
+
+async function resolveAndPersistChapter(
+  planId: string,
+  chapterId: string,
+  hobby: string,
+  level: string,
+  title: string,
+  summary: string
+): Promise<ChapterContent> {
+  const content = await generateChapterContent(hobby, level, title, summary);
+
+  const videoStep = content.steps.find((s): s is VideoStep => s.type === "video");
+  if (videoStep && videoStep.searchQueries?.length) {
+    try {
+      const query = videoStep.searchQueries[0] as string;
+
+      const videos = await searchVideos(query);
+      const candidates = filterCandidates(videos);
+      const result = await rankWithLLM(candidates, query);
+      if (result) {
+        videoStep.video = result.video;
+        videoStep.videoSummary = result.justification;
+      }
+    } catch (e) {
+      logger.error("Failed to fetch video:", e);
+    }
+  }
+
+  await Plan.updateOne(
+    { _id: planId, "chapters.id": chapterId },
+    { $set: { "chapters.$.steps": content.steps, "chapters.$.contentGenerated": true } }
+  );
+
+  return content;
+}
 
 export async function chapterGenerateController(req: Request, res: Response, next: NextFunction) {
   const { planId, chapterId } = req.params as { planId: string; chapterId: string };
@@ -22,33 +63,16 @@ export async function chapterGenerateController(req: Request, res: Response, nex
       return;
     }
 
-    const content = await generateChapterContent(
-      planDoc.hobby, planDoc.currentLevel, chapter.title, chapter.summary
-    );
-
-    const videoStep = content.steps.find((s): s is VideoStep => s.type === "video");
-    if (videoStep && videoStep.searchQueries?.length) {
-      try {
-        const query = videoStep.searchQueries[0] as string;
-        
-        const videos = await searchVideos(query);
-        const candidates = filterCandidates(videos);
-        const result = await rankWithLLM(candidates, query);
-        if (result) {
-          videoStep.video = result.video;
-          videoStep.videoSummary = result.justification;
-        }
-      } catch (e) {
-        logger.error("Failed to fetch video:", e);
-      }
+    const key = `${planId}:${chapterId}`;
+    let generation = inFlightGenerations.get(key);
+    if (!generation) {
+      generation = resolveAndPersistChapter(
+        planId, chapterId, planDoc.hobby, planDoc.currentLevel, chapter.title, chapter.summary
+      ).finally(() => inFlightGenerations.delete(key));
+      inFlightGenerations.set(key, generation);
     }
 
-    await Plan.updateOne(
-      { _id: planId, "chapters.id": chapterId },
-      { $set: { "chapters.$.steps": content.steps, "chapters.$.contentGenerated": true } }
-    );
-
-    res.json(content);
+    res.json(await generation);
   } catch (err) {
     if (err instanceof ZodError) {
       res.status(500).json({ error: "AI returned invalid chapter content", details: err.flatten() });

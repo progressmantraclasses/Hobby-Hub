@@ -84,7 +84,20 @@ export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
     "Plan Generation",
     async () => {
       const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
-      return GeneratedPlanSchema.parse(raw);
+      const generated = GeneratedPlanSchema.parse(raw);
+
+      // Trust our own request inputs over whatever the model echoed back for these fields, and
+      // force freshly generated chapters to their real starting state — none of this needs the
+      // model to get it right, so there's no reason to fail (and retry) the whole plan over it.
+      generated.hobby = hobby;
+      generated.currentLevel = currentLevel as "beginner" | "intermediate";
+      generated.targetLevel = targetLevel;
+      generated.weeklyTimeHours = weeklyTime;
+      generated.chapters = generated.chapters
+        .slice(0, 10)
+        .map((chapter) => ({ ...chapter, completed: false, contentGenerated: false }));
+
+      return generated;
     },
     "Failed to generate a valid plan after multiple attempts. Please try again."
   );
@@ -95,7 +108,15 @@ export async function generateChapterContent(hobby: string, level: string, title
     "Chapter Generation",
     async () => {
       const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
-      return ChapterContentSchema.parse(raw);
+      const content = ChapterContentSchema.parse(raw);
+
+      // The schema no longer rejects an over-count here (that would throw away otherwise-valid
+      // content just for exceeding a limit) — trim to the intended bounds after a successful parse.
+      const [, videoStep, , , , quizStep] = content.steps;
+      videoStep.searchQueries = videoStep.searchQueries.slice(0, 2);
+      quizStep.questions = quizStep.questions.slice(0, 10);
+
+      return content;
     },
     "Failed to generate valid chapter content after multiple attempts."
   );

@@ -3,11 +3,11 @@ import { z } from "zod";
 export const ChapterMetaSchema = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
-  order: z.number().int().positive(),
+  order: z.coerce.number().int().positive(),
   summary: z.string().min(1),
-  estimatedMinutes: z.number().int().positive(),
-  completed: z.boolean().default(false),
-  contentGenerated: z.boolean().default(false),
+  estimatedMinutes: z.coerce.number().int().positive().catch(30),
+  completed: z.boolean().catch(false),
+  contentGenerated: z.boolean().catch(false),
 });
 
 export type ChapterMeta = z.infer<typeof ChapterMetaSchema>;

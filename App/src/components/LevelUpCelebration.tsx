@@ -1,39 +1,64 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Text, StyleSheet } from 'react-native';
+import { Animated, Text, View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../theme/colors';
 
 interface Props { level: number; onDone: () => void; }
 
 export default function LevelUpCelebration({ level, onDone }: Props) {
+  const insets = useSafeAreaInsets();
+  const translateY = useRef(new Animated.Value(-140)).current;
   const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.5)).current;
 
   useEffect(() => {
     Animated.sequence([
+      Animated.delay(500),
       Animated.parallel([
-        Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.spring(translateY, { toValue: 0, useNativeDriver: true, friction: 7 }),
+        Animated.timing(opacity, { toValue: 1, duration: 250, useNativeDriver: true }),
       ]),
       Animated.delay(1800),
-      Animated.timing(opacity, { toValue: 0, duration: 400, useNativeDriver: true }),
+      Animated.parallel([
+        Animated.timing(translateY, { toValue: -140, duration: 300, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+      ]),
     ]).start(onDone);
-  }, [onDone, opacity, scale]);
+  }, [onDone, opacity, translateY]);
 
   return (
-    <Animated.View style={[s.overlay, { opacity }]}>
-      <Animated.View style={[s.card, { transform: [{ scale }] }]}>
+    <Animated.View
+      pointerEvents="box-none"
+      style={[s.overlay, { top: insets.top + 12 }]}
+    >
+      <Animated.View style={[s.card, { opacity, transform: [{ translateY }] }]}>
         <Text style={s.emoji}>🎉</Text>
-        <Text style={s.title}>Level Up!</Text>
-        <Text style={s.sub}>You reached Level {level}</Text>
+        <View style={s.textWrap}>
+          <Text style={s.title}>Level Up!</Text>
+          <Text style={s.sub}>You reached Level {level}</Text>
+        </View>
       </Animated.View>
     </Animated.View>
   );
 }
 
 const s = StyleSheet.create({
-  overlay: { ...StyleSheet.absoluteFill, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.overlay, zIndex: 999 },
-  card: { backgroundColor: Colors.white, borderRadius: 24, padding: 40, alignItems: 'center', shadowColor: Colors.black, shadowOpacity: 0.3, shadowRadius: 20, elevation: 20 },
-  emoji: { fontSize: 52, marginBottom: 12 },
-  title: { fontSize: 28, fontWeight: '900', color: Colors.dark, marginBottom: 6 },
-  sub: { fontSize: 16, color: Colors.gray, fontWeight: '600' },
+  overlay: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 999 },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: Colors.white,
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    maxWidth: '90%',
+    shadowColor: Colors.black,
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 12,
+  },
+  textWrap: { marginLeft: 12 },
+  emoji: { fontSize: 34 },
+  title: { fontSize: 20, fontWeight: '900', color: Colors.dark },
+  sub: { fontSize: 14, color: Colors.gray, fontWeight: '600' },
 });
