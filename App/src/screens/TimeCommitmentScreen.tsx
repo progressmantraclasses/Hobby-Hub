@@ -2,11 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { generatePlan } from '../services/api';
 import { Colors } from '../theme/colors';
 import { useAsyncTask } from '../hooks/useAsyncTask';
+import { LearnScreenNavigationProp } from '../navigation/types';
 
 export default function TimeCommitmentScreen() {
   const { hobby, level, addHobby } = usePlanStore();
@@ -14,7 +14,7 @@ export default function TimeCommitmentScreen() {
   const loading = status === 'loading';
   const [validationError, setValidationError] = useState('');
   const [hours, setHours] = useState('');
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<LearnScreenNavigationProp<'TimeCommitment'>>();
   const error = validationError || fetchError || '';
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -95,9 +95,9 @@ export default function TimeCommitmentScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} bounces={false}>
         <Text style={styles.heading}>How much time{'\n'}can you commit?</Text>
         <Text style={styles.sub}>Enter hours per week (min 2, max 168)</Text>
-        
+
         {error ? <Text style={styles.error}>{error}</Text> : null}
-        
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -115,9 +115,9 @@ export default function TimeCommitmentScreen() {
           <Text style={styles.inputSuffix}>hrs / week</Text>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.btn, !hours && styles.btnDisabled]} 
-          onPress={handleSelect} 
+        <TouchableOpacity
+          style={[styles.btn, !hours && styles.btnDisabled]}
+          onPress={handleSelect}
           disabled={!hours}
           activeOpacity={0.8}
         >
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   heading: { fontSize: 32, fontWeight: '900', color: Colors.dark, lineHeight: 40, marginBottom: 8, letterSpacing: -0.5 },
   sub: { fontSize: 15, color: Colors.gray, marginBottom: 32 },
   error: { color: Colors.danger, fontSize: 14, fontWeight: '600', marginBottom: 14 },
-  
+
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -195,7 +195,3 @@ const styles = StyleSheet.create({
   loadingSub: { fontSize: 15, color: Colors.gray, textAlign: 'center', paddingHorizontal: 20, lineHeight: 22 },
   progressFillWidth: { width: '100%' },
 });
-
-
-
-

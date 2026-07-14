@@ -1,11 +1,12 @@
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { ChevronLeft } from 'lucide-react-native';
 import { TouchableOpacity, StyleSheet } from 'react-native';
 
 import { Colors } from '../theme/colors';
 import { TAB_ICON } from '../constants/navigation';
+import type { RootStackParamList, MainTabParamList, LearnStackParamList } from './types';
 
 import HobbyScreen from '../screens/HobbyScreen';
 import LevelScreen from '../screens/LevelScreen';
@@ -20,8 +21,9 @@ import ChapterDetailScreen from '../screens/ChapterDetailScreen';
 import ChapterFlowScreen from '../screens/ChapterFlowScreen';
 import ChapterCompleteScreen from '../screens/ChapterCompleteScreen';
 
-const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+const LearnStackNav = createNativeStackNavigator<LearnStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 // Standalone Components to satisfy react/no-unstable-nested-components
 interface TabBarIconProps {
@@ -35,7 +37,7 @@ const TabBarIcon = ({ routeName, color, size }: TabBarIconProps) => {
 };
 
 interface HeaderLeftProps {
-  navigation: any;
+  navigation: NativeStackNavigationProp<RootStackParamList, 'CourseDetail'>;
   tintColor?: string;
 }
 const CourseHeaderLeft = ({ navigation, tintColor }: HeaderLeftProps) => (
@@ -49,11 +51,11 @@ const CourseHeaderLeft = ({ navigation, tintColor }: HeaderLeftProps) => (
 
 function LearnStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Hobby" component={HobbyScreen} />
-      <Stack.Screen name="Level" component={LevelScreen} />
-      <Stack.Screen name="TimeCommitment" component={TimeCommitmentScreen} />
-    </Stack.Navigator>
+    <LearnStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <LearnStackNav.Screen name="Hobby" component={HobbyScreen} />
+      <LearnStackNav.Screen name="Level" component={LevelScreen} />
+      <LearnStackNav.Screen name="TimeCommitment" component={TimeCommitmentScreen} />
+    </LearnStackNav.Navigator>
   );
 }
 

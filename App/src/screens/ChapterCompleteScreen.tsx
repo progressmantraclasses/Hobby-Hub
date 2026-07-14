@@ -3,15 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChapterMeta } from '../schemas/plan.schema';
 import { Colors } from '../theme/colors';
 import LevelUpCelebration from '../components/LevelUpCelebration';
-
-type Params = { chapter: ChapterMeta; levelUp?: boolean; newLevel?: number };
+import { XP_PER_CHAPTER } from '../utils/xp';
+import { RootStackParamList } from '../navigation/types';
 
 export default function ChapterCompleteScreen() {
-  const route = useRoute<RouteProp<{ params: Params }, 'params'>>();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ChapterComplete'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'ChapterComplete'>>();
   const { chapter, levelUp, newLevel } = route.params;
   const [showCelebration, setShowCelebration] = useState(!!levelUp);
 
@@ -24,7 +23,7 @@ export default function ChapterCompleteScreen() {
         <Text style={styles.subtitle}>You've successfully finished "{chapter.title}".</Text>
         <View style={styles.xpCard}>
           <Text style={styles.xpLabel}>REWARD</Text>
-          <Text style={styles.xpValue}>+50 XP</Text>
+          <Text style={styles.xpValue}>+{XP_PER_CHAPTER} XP</Text>
         </View>
       </View>
       <View style={styles.footer}>

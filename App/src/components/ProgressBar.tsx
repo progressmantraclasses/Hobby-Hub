@@ -8,7 +8,7 @@ export default function ProgressBar({ progress, color = Colors.primary, height =
   const safeProgress = Math.min(Math.max(progress, 0), 1);
   return (
     <View style={[s.bar, { height }, style]}>
-      <View style={[s.barFill, { width: `${safeProgress * 100}%` as any, backgroundColor: color, height }]} />
+      <View style={[s.barFill, { width: `${safeProgress * 100}%` as `${number}%`, backgroundColor: color, height }]} />
     </View>
   );
 }

@@ -4,14 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { usePlanStore, ChapterStatus } from '../store/planStore';
-import { ChapterMeta } from '../schemas/plan.schema';
 import { Colors } from '../theme/colors';
 import { CHAPTER_STATUS_LABELS, CHAPTER_STATUS_COLORS } from '../constants/chapterStatus';
+import { XP_PER_CHAPTER } from '../utils/xp';
+import { RootStackParamList } from '../navigation/types';
 
 export default function ChapterDetailScreen() {
-  const route = useRoute<RouteProp<any, 'ChapterDetail'>>();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
-  const { chapter, hobbyId: routeHobbyId } = route.params as { chapter: ChapterMeta; hobbyId?: string };
+  const route = useRoute<RouteProp<RootStackParamList, 'ChapterDetail'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'ChapterDetail'>>();
+  const { chapter, hobbyId: routeHobbyId } = route.params;
   const { activeHobbyId, hobbies } = usePlanStore();
   const hobbyId = routeHobbyId ?? activeHobbyId;
   const chapterProgress = hobbyId ? hobbies[hobbyId]?.chapterProgress ?? {} : {};
@@ -34,7 +35,7 @@ export default function ChapterDetailScreen() {
         <Text style={styles.order}>Chapter {chapter.order}</Text>
         <Text style={styles.title}>{chapter.title}</Text>
         <Text style={styles.summary}>{chapter.summary}</Text>
-        <Text style={styles.meta}>⏱ {chapter.estimatedMinutes} minutes • +100 XP</Text>
+        <Text style={styles.meta}>⏱ {chapter.estimatedMinutes} minutes • +{XP_PER_CHAPTER} XP</Text>
       </ScrollView>
 
       <View style={styles.footer}>

@@ -2,15 +2,15 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { PlanRequest } from '../schemas/plan.schema';
 import { Colors } from '../theme/colors';
 import { LEVELS } from '../constants/levels';
+import { LearnScreenNavigationProp } from '../navigation/types';
 
 export default function LevelScreen() {
   const { setLevel } = usePlanStore();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<LearnScreenNavigationProp<'Level'>>();
 
   const handleSelect = (level: PlanRequest['level']) => {
     setLevel(level);

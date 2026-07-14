@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors } from '../theme/colors';
 import { ChapterStatus } from '../store/planStore';
 import { CHAPTER_STATUS_STYLE } from '../constants/chapterStatus';
+import { XP_PER_CHAPTER } from '../utils/xp';
 
 interface ChapterCardProps { id: string; order: number; title: string; summary: string; estimatedMinutes: number; status: ChapterStatus; locked: boolean; isCurrent: boolean; onPress: () => void; }
 
@@ -21,7 +22,7 @@ export default function ChapterCard({ order, title, summary, estimatedMinutes, s
         <Text style={s.cardSub} numberOfLines={2}>{summary}</Text>
         <View style={s.cardMeta}>
           <Text style={s.metaTime}>⏱ {estimatedMinutes} min</Text>
-          <Text style={s.metaXP}>+50 XP</Text>
+          <Text style={s.metaXP}>+{XP_PER_CHAPTER} XP</Text>
           {label ? <View style={[s.pill, { backgroundColor: bg }]}><Text style={[s.pillText, { color }]}>{label}</Text></View> : null}
         </View>
       </View>

@@ -2,14 +2,23 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import { Colors } from '../../theme/colors';
+import { LearningStep } from '../../schemas/plan.schema';
 
-const SummaryStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
+type SummaryStepData = Extract<LearningStep, { type: 'summary' }>;
+type VideoStepData = Extract<LearningStep, { type: 'video' }>;
+type ReflectionStepData = Extract<LearningStep, { type: 'reflection' }>;
+type ReadingStepData = Extract<LearningStep, { type: 'reading' }>;
+type InteractiveStepData = Extract<LearningStep, { type: 'interactive' }>;
+type QuizStepData = Extract<LearningStep, { type: 'quiz' }>;
+type PracticeStepData = Extract<LearningStep, { type: 'practice' }>;
+
+const SummaryStep = ({ step, onNext }: { step: SummaryStepData; onNext?: () => void }) => (
   <View style={s.container}>
     <Text style={s.title}>Summary</Text>
     <Text style={s.sub}>What You'll Learn</Text>
-    {step.whatYouWillLearn.map((item: string, i: number) => <Text key={i} style={s.text}>• {item}</Text>)}
+    {step.whatYouWillLearn.map((item, i) => <Text key={i} style={s.text}>• {item}</Text>)}
     <Text style={[s.sub, s.mt20]}>Key Concepts</Text>
-    {step.keyConcepts.map((item: string, i: number) => <Text key={i} style={s.text}>• {item}</Text>)}
+    {step.keyConcepts.map((item, i) => <Text key={i} style={s.text}>• {item}</Text>)}
     <View style={s.card}>
       <Text style={s.cardTitle}>Outcome</Text>
       <Text style={s.text}>{step.expectedOutcome}</Text>
@@ -27,10 +36,10 @@ const SummaryStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
   </View>
 );
 
-const VideoStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
+const VideoStep = ({ step, onNext }: { step: VideoStepData; onNext?: () => void }) => (
   <View style={s.container}>
     <Text style={s.title}>Video Instruction</Text>
-    
+
     {step.video ? (
       <View style={s.videoWrapper}>
         <YoutubePlayer height={220} videoId={step.video.videoId} />
@@ -45,7 +54,7 @@ const VideoStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
     ) : (
       <>
         <Text style={s.text}>Recommended searches to find tutorials:</Text>
-        {step.searchQueries?.map((q: string, i: number) => (
+        {step.searchQueries?.map((q, i) => (
           <View key={i} style={s.searchBox}>
             <Text style={s.searchIcon}>🔍</Text>
             <Text style={s.searchText}>"{q}"</Text>
@@ -53,7 +62,7 @@ const VideoStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
         ))}
       </>
     )}
-    
+
     {onNext && (
       <View style={s.actionRow}>
         <TouchableOpacity style={s.skipBtn} onPress={onNext}>
@@ -67,7 +76,7 @@ const VideoStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
   </View>
 );
 
-const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => {
+const ReflectionStep = ({ step, onNext }: { step: ReflectionStepData; onNext: () => void }) => {
   const [answer, setAnswer] = useState('');
   const [selectedOpt, setSelectedOpt] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -92,16 +101,16 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
     <View style={s.container}>
       <Text style={s.title}>Reflection</Text>
       <Text style={s.text}>{step.question}</Text>
-      
+
       <View style={s.my20}>
         {step.format === 'mcq' || step.format === 'trueFalse' ? (
-          step.options?.map((opt: string, i: number) => {
+          step.options?.map((opt, i) => {
             const isSelected = selectedOpt === opt;
             const isAnswerCorrect = opt.trim().toLowerCase() === step.correctAnswer?.trim().toLowerCase();
-            
+
             // Custom dynamic styles based on submission state
-            let optionStyle: any = [s.optionBox];
-            let optionTextStyle: any = [s.optionText];
+            const optionStyle: (object | undefined)[] = [s.optionBox];
+            const optionTextStyle: (object | undefined)[] = [s.optionText];
 
             if (isSelected) {
               if (isSubmitted) {
@@ -123,8 +132,8 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
             }
 
             return (
-              <TouchableOpacity 
-                key={i} 
+              <TouchableOpacity
+                key={i}
                 style={optionStyle}
                 onPress={() => !isSubmitted && setSelectedOpt(opt)}
                 activeOpacity={isSubmitted ? 1 : 0.7}
@@ -134,9 +143,9 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
             );
           })
         ) : (
-          <TextInput 
+          <TextInput
             style={[s.textInput, isSubmitted && { backgroundColor: Colors.grayLight, color: Colors.gray }]}
-            multiline 
+            multiline
             editable={!isSubmitted}
             placeholder="Type your answer here..."
             placeholderTextColor={Colors.gray}
@@ -174,12 +183,12 @@ const ReflectionStep = ({ step, onNext }: { step: any; onNext: () => void }) => 
             <Text style={s.skipBtnText}>Skip</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
-            s.continueBtn, 
-            s.flexBtn, 
+            s.continueBtn,
+            s.flexBtn,
             !(answer.trim() || selectedOpt) && !isSubmitted && s.disabledBtn
-          ]} 
+          ]}
           onPress={handleSubmit}
           disabled={!(answer.trim() || selectedOpt) && !isSubmitted}
         >
@@ -216,12 +225,12 @@ const cleanContent = (text: string) => {
   return cleaned.trim();
 };
 
-const ReadingStep = ({ step, onNext }: { step: any; onNext?: () => void }) => {
+const ReadingStep = ({ step, onNext }: { step: ReadingStepData; onNext?: () => void }) => {
   return (
     <View style={s.container}>
       <Text style={s.title}>Reading</Text>
       <Text style={s.text}>{cleanContent(step.content)}</Text>
-      
+
       {onNext && (
         <View style={s.actionRow}>
           <TouchableOpacity style={s.skipBtn} onPress={onNext}>
@@ -236,16 +245,16 @@ const ReadingStep = ({ step, onNext }: { step: any; onNext?: () => void }) => {
   );
 };
 
-const InteractiveStep = ({ step, onNext }: { step: any; onNext: () => void }) => {
+const InteractiveStep = ({ step, onNext }: { step: InteractiveStepData; onNext: () => void }) => {
   const [flippedIndex, setFlippedIndex] = useState<number | null>(null);
 
   return (
     <View style={s.container}>
       <Text style={s.title}>Interactive Exercise</Text>
-      
+
       {step.activityType === 'flashcard' && step.cards ? (
         <ScrollView contentContainerStyle={s.pb20}>
-          {step.cards.map((c: any, i: number) => {
+          {step.cards.map((c, i) => {
             const isFlipped = flippedIndex === i;
             return (
               <TouchableOpacity
@@ -270,7 +279,7 @@ const InteractiveStep = ({ step, onNext }: { step: any; onNext: () => void }) =>
           <Text style={s.text}>Dynamic activity goes here based on {step.activityType}</Text>
         </View>
       )}
-      
+
       <View style={s.actionRow}>
         <TouchableOpacity style={s.skipBtn} onPress={onNext}>
           <Text style={s.skipBtnText}>Skip Step</Text>
@@ -283,7 +292,7 @@ const InteractiveStep = ({ step, onNext }: { step: any; onNext: () => void }) =>
   );
 };
 
-const QuizStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
+const QuizStep = ({ step, onNext }: { step: QuizStepData; onNext?: () => void }) => (
   <View style={s.container}>
     <Text style={s.title}>Quiz</Text>
     <Text style={s.text}>Passing Score: {step.passingScore}%</Text>
@@ -301,7 +310,7 @@ const QuizStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
   </View>
 );
 
-const PracticeStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
+const PracticeStep = ({ step, onNext }: { step: PracticeStepData; onNext?: () => void }) => (
   <View style={s.container}>
     <Text style={s.title}>Practice</Text>
     <View style={s.card}>
@@ -326,7 +335,11 @@ const PracticeStep = ({ step, onNext }: { step: any; onNext?: () => void }) => (
   </View>
 );
 
-export const stepRenderers: Record<string, React.FC<any>> = {
+// Each step component takes its own narrow, schema-derived prop type (SummaryStepData,
+// VideoStepData, ...), so this lookup map can't carry a single precise value type — TS has
+// no sound way to express "a function whose param type depends on the record key" here.
+// The cast lives at this one boundary only; every component body above is fully typed.
+export const stepRenderers: Record<LearningStep['type'], React.FC<any>> = {
   summary: SummaryStep,
   video: VideoStep,
   reflection: ReflectionStep,
@@ -353,7 +366,7 @@ const s = StyleSheet.create({
   videoMeta: { padding: 16 },
   videoChannel: { fontSize: 13, color: Colors.gray, fontWeight: '600', marginTop: 4 },
   textInput: { backgroundColor: Colors.white, borderWidth: 1.5, borderColor: Colors.grayLight, borderRadius: 12, padding: 16, fontSize: 16, color: Colors.dark, minHeight: 120, textAlignVertical: 'top' },
-  
+
   feedbackBanner: { padding: 16, borderRadius: 12, borderWidth: 1.5, marginBottom: 20 },
   feedbackTitle: { fontSize: 16, fontWeight: '800', marginBottom: 4 },
   feedbackDesc: { fontSize: 14, color: Colors.dark, lineHeight: 20 },
@@ -363,10 +376,10 @@ const s = StyleSheet.create({
   flexBtn: { flex: 1 },
   disabledBtn: { backgroundColor: Colors.grayLight },
   continueBtnText: { color: Colors.white, fontSize: 17, fontWeight: '800' },
-  
+
   skipBtn: { padding: 18, borderRadius: 16, alignItems: 'center', backgroundColor: Colors.primaryBg, borderWidth: 1, borderColor: Colors.primary + '30' },
   skipBtnText: { color: Colors.primary, fontSize: 16, fontWeight: '700' },
-  
+
   flashcard: { backgroundColor: Colors.white, minHeight: 180, borderRadius: 16, padding: 24, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.primaryLight, marginBottom: 16, shadowColor: Colors.primary, shadowOpacity: 0.1, shadowRadius: 10, elevation: 3 },
   flashcardFlipped: { backgroundColor: Colors.primaryBg, borderColor: Colors.primary, borderWidth: 2 },
   flashcardText: { fontSize: 20, fontWeight: '700', color: Colors.dark, textAlign: 'center' },

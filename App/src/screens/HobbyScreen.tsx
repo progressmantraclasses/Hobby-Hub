@@ -3,10 +3,10 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Keyboa
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 import { usePlanStore } from '../store/planStore';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from '../theme/colors';
 import { HOBBY_SUGGESTIONS } from '../constants/hobbies';
+import { LearnScreenNavigationProp } from '../navigation/types';
 
 const HobbySchema = z.string().min(2, 'Hobby must be at least 2 characters');
 
@@ -14,7 +14,7 @@ export default function HobbyScreen() {
   const { hobby, setHobby } = usePlanStore();
   const [input, setInput] = useState(hobby || '');
   const [error, setError] = useState('');
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const navigation = useNavigation<LearnScreenNavigationProp<'Hobby'>>();
 
   const handleNext = () => {
     const result = HobbySchema.safeParse(input.trim());

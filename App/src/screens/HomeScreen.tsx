@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { greeting, getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
@@ -12,9 +11,10 @@ import UserHeader from '../components/UserHeader';
 import ProgressBar from '../components/ProgressBar';
 import HobbyMiniCard from '../components/HobbyMiniCard';
 import QuestCard from '../components/QuestCard';
+import { MainTabScreenNavigationProp } from '../navigation/types';
 
 export default function HomeScreen() {
-  const nav = useNavigation<NativeStackNavigationProp<any>>();
+  const nav = useNavigation<MainTabScreenNavigationProp<'Home'>>();
   const { xpTotal, streak, hobbies, activeHobbyId, setActiveHobby, setHobby, userName, updateStreak, hasHydrated } = usePlanStore();
 
   React.useEffect(() => {

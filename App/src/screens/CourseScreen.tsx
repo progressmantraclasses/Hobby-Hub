@@ -2,16 +2,17 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { hobbyCompletion } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
 import { hobbyEmoji } from '../constants/hobbies';
 import CourseCard from '../components/CourseCard';
+import { MainTabScreenNavigationProp } from '../navigation/types';
+
 export default function CourseScreen() {
   const { hobbies, setActiveHobby, activeHobbyId, hasHydrated } = usePlanStore();
-  const nav = useNavigation<NativeStackNavigationProp<any>>();
+  const nav = useNavigation<MainTabScreenNavigationProp<'Course'>>();
   const hobbyList = Object.values(hobbies);
 
   if (!hasHydrated) {

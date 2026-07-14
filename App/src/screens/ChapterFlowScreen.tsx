@@ -3,18 +3,18 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Animat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChapterContent, ChapterMeta } from '../schemas/plan.schema';
+import { ChapterContent } from '../schemas/plan.schema';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
 import { stepRenderers } from '../components/stepRenderers';
 import { generateChapter } from '../services/api';
 import { useAsyncTask } from '../hooks/useAsyncTask';
-
-type RouteParams = { chapter: ChapterMeta; hobbyId?: string };
+import { XP_PER_CHAPTER, XP_PER_LEVEL } from '../utils/xp';
+import { RootStackParamList } from '../navigation/types';
 
 export default function ChapterFlowScreen() {
-  const route = useRoute<RouteProp<{ params: RouteParams }, 'params'>>();
-  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'ChapterFlow'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'ChapterFlow'>>();
   const { chapter } = route.params;
   const { updateChapterProgress, addXp, activeHobbyId, hobbies } = usePlanStore();
   const hobbyId = route.params.hobbyId ?? activeHobbyId;
@@ -106,7 +106,7 @@ export default function ChapterFlowScreen() {
 
   const steps = content.steps;
   const currentStep = steps[currentStepIndex];
-  const StepComponent = stepRenderers[currentStep.type] as React.FC<{ step: any; onNext: () => void }>;
+  const StepComponent = stepRenderers[currentStep.type] as React.FC<{ step: ChapterContent['steps'][number]; onNext: () => void }>;
 
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
@@ -114,10 +114,10 @@ export default function ChapterFlowScreen() {
     } else {
       if (hobbyId) {
         const { xpTotal } = usePlanStore.getState();
-        const prevLevel = Math.floor(xpTotal / 200);
+        const prevLevel = Math.floor(xpTotal / XP_PER_LEVEL);
         updateChapterProgress(hobbyId, chapter.id, 'completed');
-        addXp(50);
-        const newLevel = Math.floor((xpTotal + 50) / 200);
+        addXp(XP_PER_CHAPTER);
+        const newLevel = Math.floor((xpTotal + XP_PER_CHAPTER) / XP_PER_LEVEL);
         navigation.replace('ChapterComplete', { chapter, levelUp: newLevel > prevLevel, newLevel: newLevel + 1 });
       } else {
         navigation.replace('ChapterComplete', { chapter });

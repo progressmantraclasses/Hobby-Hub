@@ -1,4 +1,5 @@
 export const XP_PER_LEVEL = 200;
+export const XP_PER_CHAPTER = 50;
 export const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
 export const getXpProgress = (xp: number) => (xp % XP_PER_LEVEL) / XP_PER_LEVEL;
 

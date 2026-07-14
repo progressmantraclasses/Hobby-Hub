@@ -22,9 +22,10 @@ export function useAsyncTask<Args extends unknown[], T>(task: (...args: Args) =>
         const data = await task(...args);
         if (id === requestId.current) setState({ status: 'success', data, error: null });
         return data;
-      } catch (err: any) {
+      } catch (err) {
         if (id === requestId.current) {
-          setState({ status: 'error', data: null, error: err?.message || 'Something went wrong' });
+          const message = err instanceof Error ? err.message : 'Something went wrong';
+          setState({ status: 'error', data: null, error: message });
         }
         throw err;
       }

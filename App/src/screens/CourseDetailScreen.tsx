@@ -3,16 +3,16 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore, ChapterStatus } from '../store/planStore';
 import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme/colors';
 import ScreenLoader from '../components/ScreenLoader';
 import { RANK } from '../constants/rank';
 import ProgressBar from '../components/ProgressBar';
 import ChapterCard from '../components/ChapterCard';
+import { XP_PER_CHAPTER } from '../utils/xp';
 
 export default function CourseDetailScreen() {
   const { hobbies, activeHobbyId, streak, updateStreak, hasHydrated } = usePlanStore();
-  const nav = useNavigation<NativeStackNavigationProp<any>>();
+  const nav = useNavigation();
 
   useEffect(() => { updateStreak(); }, [updateStreak]);
 
@@ -46,7 +46,7 @@ export default function CourseDetailScreen() {
     return st === 'pending' || st === 'in_progress';
   });
 
-  const courseXp = completed * 50;
+  const courseXp = completed * XP_PER_CHAPTER;
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
