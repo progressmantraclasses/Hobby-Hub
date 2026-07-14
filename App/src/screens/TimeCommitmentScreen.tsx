@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
@@ -6,6 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { generatePlan } from '../services/api';
 import { Colors } from '../theme/colors';
 import { useAsyncTask } from '../hooks/useAsyncTask';
+import { useThinkingAnimation } from '../hooks/useThinkingAnimation';
 import { LearnScreenNavigationProp } from '../navigation/types';
 
 export default function TimeCommitmentScreen() {
@@ -17,35 +18,7 @@ export default function TimeCommitmentScreen() {
   const navigation = useNavigation<LearnScreenNavigationProp<'TimeCommitment'>>();
   const error = validationError || fetchError || '';
 
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const [loadingText, setLoadingText] = useState('Thinking...');
-
-  useEffect(() => {
-    if (loading) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.15, duration: 800, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true })
-        ])
-      ).start();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [loading, pulseAnim]);
-
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (loading) {
-      const texts = ['Thinking...', 'Preparing...', 'Customizing...', 'Generating...'];
-      let i = 0;
-      setLoadingText(texts[i]);
-      interval = setInterval(() => {
-        i = (i + 1) % texts.length;
-        setLoadingText(texts[i]);
-      }, 1500);
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
+  const { pulseAnim, loadingText } = useThinkingAnimation(loading, { pulseScale: 1.15, pulseDuration: 800 });
 
   const handleSelect = async () => {
     const time = parseInt(hours, 10);

@@ -1,6 +1,7 @@
 import Groq from "groq-sdk";
 import { env } from "../config/env";
 import { YouTubeVideo } from "./youtube.service";
+import { GROQ_MODEL } from "./groq.service";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
 
@@ -43,7 +44,7 @@ Return a JSON object only:
 }`;
 
   const completion = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
+    model: GROQ_MODEL,
     messages: [{ role: "user", content: prompt }],
     response_format: { type: "json_object" },
     temperature: 0.2,

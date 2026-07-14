@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
-import { hobbyCompletion } from '../utils/xp';
+import { hobbyCompletion, countCompletedChapters } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
 import { hobbyEmoji } from '../constants/hobbies';
 import CourseCard from '../components/CourseCard';
@@ -39,7 +39,7 @@ export default function CourseScreen() {
         ) : (
           hobbyList.map(({ plan, chapterProgress }) => {
             const pct = hobbyCompletion(chapterProgress, plan.chapters);
-            const done = plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length;
+            const done = countCompletedChapters(chapterProgress, plan.chapters);
             const isActive = activeHobbyId === plan.hobby;
             
             return (

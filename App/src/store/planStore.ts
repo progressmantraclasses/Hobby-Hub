@@ -7,6 +7,15 @@ export type ChapterStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
 const STORE_VERSION = 3;
 
+// Streak days must be counted against the device's local calendar day, not UTC —
+// toISOString() would roll the date over at UTC midnight instead of the user's own midnight.
+const toLocalDateKey = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 interface HobbyProgress {
   plan: Plan;
   chapterProgress: Record<string, ChapterStatus>;
@@ -84,7 +93,7 @@ export const usePlanStore = create<PlanState>()(
         }),
       updateStreak: () =>
         set((state) => {
-          const today = new Date().toISOString().split('T')[0];
+          const today = toLocalDateKey(new Date());
           const lastDate = state.lastActiveDate;
           let currentStreak = state.streak;
           let maxStreak = state.longestStreak || 0;
@@ -93,7 +102,7 @@ export const usePlanStore = create<PlanState>()(
             return {};
           }
 
-          const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+          const yesterday = toLocalDateKey(new Date(Date.now() - 86400000));
           if (lastDate === yesterday) {
             currentStreak += 1;
           } else {

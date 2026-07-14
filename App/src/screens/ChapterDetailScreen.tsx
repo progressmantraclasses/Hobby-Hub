@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 26, fontWeight: '800', color: Colors.dark, lineHeight: 34, marginBottom: 14 },
   summary: { fontSize: 15, color: Colors.textSecondary, lineHeight: 24, marginBottom: 16 },
   meta: { fontSize: 13, color: Colors.gray, fontWeight: '600', marginBottom: 28 },
-  error: { color: Colors.danger, marginTop: 10, fontWeight: '600' },
 
   footer: { padding: 16, backgroundColor: Colors.white, borderTopWidth: 1, borderColor: Colors.grayLight },
   startBtn: { backgroundColor: Colors.primary, padding: 18, borderRadius: 16, alignItems: 'center', shadowColor: Colors.primary, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },

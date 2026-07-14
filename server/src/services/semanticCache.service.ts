@@ -1,6 +1,7 @@
 import path from "path";
 import { pipeline, env as transformersEnv, type FeatureExtractionPipeline } from "@huggingface/transformers";
 import { Plan } from "../models/Plan.model"
+import { resolveCurrentLevel } from "../utils/planLevel";
 
 transformersEnv.cacheDir = path.join(__dirname, "../../.model-cache/");
 
@@ -37,7 +38,7 @@ export function cosineSimilarity(vecA: number[], vecB: number[]): number {
 }
 
 export async function findSimilarPlan(queryEmbedding: number[], level: string, weeklyTime: number) {
-  const currentLevel = level === "advanced" ? "intermediate" : level;
+  const currentLevel = resolveCurrentLevel(level);
 
   const candidates = await Plan.find({
     currentLevel,

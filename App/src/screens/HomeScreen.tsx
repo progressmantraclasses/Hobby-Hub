@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
-import { greeting, getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
+import { greeting, getLevel, getXpProgress, hobbyCompletion, findNextChapter, XP_PER_LEVEL } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
 import { hobbyEmoji, SUGGESTED_HOBBIES } from '../constants/hobbies';
 import UserHeader from '../components/UserHeader';
@@ -53,12 +53,7 @@ export default function HomeScreen() {
   const hobbyList = Object.values(hobbies);
   const incompleteHobbies = hobbyList.filter(h => hobbyCompletion(h.chapterProgress, h.plan.chapters) < 1);
   const active = activeHobbyId ? hobbies[activeHobbyId] : hobbyList[0] ?? null;
-  const nextChapter = active
-    ? [...active.plan.chapters].sort((a, b) => a.order - b.order).find(c => {
-      const st = active.chapterProgress[c.id] || 'pending';
-      return st === 'pending' || st === 'in_progress';
-    })
-    : null;
+  const nextChapter = active ? findNextChapter(active.chapterProgress, active.plan.chapters) : null;
 
   const startChapter = () => {
     if (!nextChapter || !active) return;

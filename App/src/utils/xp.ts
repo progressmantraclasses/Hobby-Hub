@@ -14,7 +14,19 @@ export const greeting = () => {
   return 'Good night'; // For 9 PM to 4:59 AM
 };
 
+export const countCompletedChapters = (chapterProgress: Record<string, string>, chapters: { id: string }[]) =>
+  chapters.filter(c => chapterProgress[c.id] === 'completed').length;
+
 export const hobbyCompletion = (chapterProgress: Record<string, string>, chapters: { id: string }[]) => {
   if (!chapters.length) return 0;
-  return chapters.filter(c => chapterProgress[c.id] === 'completed').length / chapters.length;
+  return countCompletedChapters(chapterProgress, chapters) / chapters.length;
 };
+
+export const findNextChapter = <T extends { id: string; order: number }>(
+  chapterProgress: Record<string, string>,
+  chapters: T[]
+): T | undefined =>
+  [...chapters].sort((a, b) => a.order - b.order).find(c => {
+    const st = chapterProgress[c.id] || 'pending';
+    return st === 'pending' || st === 'in_progress';
+  });

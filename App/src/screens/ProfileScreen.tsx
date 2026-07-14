@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity, TextIn
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
 import { Colors } from '../theme/colors';
-import { getLevel, getXpProgress, hobbyCompletion, XP_PER_LEVEL } from '../utils/xp';
+import { getLevel, getXpProgress, hobbyCompletion, countCompletedChapters, XP_PER_LEVEL } from '../utils/xp';
 import ScreenLoader from '../components/ScreenLoader';
 import { hobbyEmoji } from '../constants/hobbies';
 import { BADGES } from '../constants/badges';
@@ -28,7 +28,7 @@ export default function ProfileScreen() {
   const hobbyList = Object.values(hobbies);
 
   const totalChaptersDone = hobbyList.reduce((acc, { plan, chapterProgress }) =>
-    acc + plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length, 0);
+    acc + countCompletedChapters(chapterProgress, plan.chapters), 0);
   const hasFullyMastered = hobbyList.some(({ plan, chapterProgress }) =>
     plan.chapters.length > 0 && plan.chapters.every(c => chapterProgress[c.id] === 'completed'));
 
@@ -129,7 +129,7 @@ export default function ProfileScreen() {
             <Text style={[s.sectionTitle, s.progressSectionTitle]}>Course Progress</Text>
             {hobbyList.map(({ plan, chapterProgress }) => {
               const pct = hobbyCompletion(chapterProgress, plan.chapters);
-              const done = plan.chapters.filter(c => chapterProgress[c.id] === 'completed').length;
+              const done = countCompletedChapters(chapterProgress, plan.chapters);
               return (
                 <HobbyRow
                   key={plan.hobby}

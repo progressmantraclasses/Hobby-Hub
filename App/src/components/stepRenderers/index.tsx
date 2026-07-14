@@ -387,10 +387,6 @@ const s = StyleSheet.create({
   flashcardHint: { fontSize: 12, color: Colors.gray, marginTop: 20, textTransform: 'uppercase', letterSpacing: 1, fontWeight: '700' },
   flashcardHintFlipped: { color: Colors.primaryMid },
 
-  imageScroll: { gap: 12, paddingBottom: 8 },
-  imageCard: { width: 220, backgroundColor: Colors.white, borderRadius: 14, overflow: 'hidden', borderWidth: 1.5, borderColor: Colors.grayLight },
-  stepImage: { width: 220, height: 140 },
-  imagePromptText: { fontSize: 11, color: Colors.gray, padding: 8, fontWeight: '600', lineHeight: 15 },
   mt20: { marginTop: 20 },
   mt10: { marginTop: 10 },
   my20: { marginTop: 20, marginBottom: 20 },

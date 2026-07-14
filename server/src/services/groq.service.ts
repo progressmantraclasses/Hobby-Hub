@@ -4,8 +4,11 @@ import { env } from "../config/env";
 import { AIProviderError } from "../utils/errors";
 import { PlanRequestSchema, GeneratedPlanSchema, ChapterContentSchema, type GeneratedPlan, type ChapterContent } from "../schemas/plan.schema";
 import { logger } from "../utils/logger";
+import { resolveCurrentLevel } from "../utils/planLevel";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
+
+export const GROQ_MODEL = "llama-3.1-8b-instant";
 
 const PLAN_PROMPT = `You are a structured learning plan generator.
 Return ONLY valid JSON — no markdown, no extra text.
@@ -27,7 +30,7 @@ Return: { steps: [summary, video, reflection, reading, interactive, quiz, practi
 
 async function callGroq(system: string, user: string) {
   const res = await groq.chat.completions.create({
-    model: "llama-3.1-8b-instant",
+    model: GROQ_MODEL,
     messages: [{ role: "system", content: system }, { role: "user", content: user }],
     response_format: { type: "json_object" },
     temperature: 0.7,
@@ -74,7 +77,7 @@ async function generateWithRetries<T>(
 
 export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
   const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
-  const currentLevel = level === "advanced" ? "intermediate" : level as "beginner" | "intermediate";
+  const currentLevel = resolveCurrentLevel(level);
   const targetLevel  = currentLevel === "beginner" ? "intermediate" : "advanced";
 
   return generateWithRetries(

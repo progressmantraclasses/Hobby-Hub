@@ -8,7 +8,7 @@ import ScreenLoader from '../components/ScreenLoader';
 import { RANK } from '../constants/rank';
 import ProgressBar from '../components/ProgressBar';
 import ChapterCard from '../components/ChapterCard';
-import { XP_PER_CHAPTER } from '../utils/xp';
+import { XP_PER_CHAPTER, countCompletedChapters, findNextChapter } from '../utils/xp';
 
 export default function CourseDetailScreen() {
   const { hobbies, activeHobbyId, streak, updateStreak, hasHydrated } = usePlanStore();
@@ -39,14 +39,12 @@ export default function CourseDetailScreen() {
 
   const { plan, chapterProgress } = active;
   const chapters = [...plan.chapters].sort((a, b) => a.order - b.order);
-  const completed = chapters.filter(c => chapterProgress[c.id] === 'completed').length;
+  const completed = countCompletedChapters(chapterProgress, chapters);
   const progress = chapters.length ? completed / chapters.length : 0;
-  const firstActive = chapters.find(c => {
-    const st = chapterProgress[c.id] || 'pending';
-    return st === 'pending' || st === 'in_progress';
-  });
+  const firstActive = findNextChapter(chapterProgress, chapters);
 
   const courseXp = completed * XP_PER_CHAPTER;
+  const maxCourseXp = chapters.length * XP_PER_CHAPTER;
 
   return (
     <SafeAreaView style={s.safe} edges={['bottom']}>
@@ -59,7 +57,7 @@ export default function CourseDetailScreen() {
             <Text style={s.hobbyName}>{plan.hobby}</Text>
           </View>
           <View style={s.rankBadge}>
-            <Text style={s.rankText}>{RANK(courseXp)}</Text>
+            <Text style={s.rankText}>{RANK(courseXp, maxCourseXp)}</Text>
           </View>
         </View>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
@@ -9,6 +9,7 @@ import { Colors } from '../theme/colors';
 import { stepRenderers } from '../components/stepRenderers';
 import { generateChapter } from '../services/api';
 import { useAsyncTask } from '../hooks/useAsyncTask';
+import { useThinkingAnimation } from '../hooks/useThinkingAnimation';
 import { XP_PER_CHAPTER, XP_PER_LEVEL } from '../utils/xp';
 import { RootStackParamList } from '../navigation/types';
 
@@ -20,8 +21,6 @@ export default function ChapterFlowScreen() {
   const hobbyId = route.params.hobbyId ?? activeHobbyId;
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const [loadingText, setLoadingText] = useState('Thinking...');
 
   const fetchChapter = useCallback((): Promise<ChapterContent> => {
     const planId = hobbyId ? hobbies[hobbyId]?.plan.id : undefined;
@@ -31,33 +30,7 @@ export default function ChapterFlowScreen() {
 
   const { status, data: content, error, run } = useAsyncTask(fetchChapter);
   const loading = status === 'idle' || status === 'loading';
-
-  useEffect(() => {
-    if (loading) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 1.1, duration: 600, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 600, useNativeDriver: true })
-        ])
-      ).start();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [loading, pulseAnim]);
-
-  useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (loading) {
-      const texts = ['Thinking...', 'Preparing...', 'Customizing...', 'Generating...'];
-      let i = 0;
-      setLoadingText(texts[i]);
-      interval = setInterval(() => {
-        i = (i + 1) % texts.length;
-        setLoadingText(texts[i]);
-      }, 1500);
-    }
-    return () => clearInterval(interval);
-  }, [loading]);
+  const { pulseAnim, loadingText } = useThinkingAnimation(loading);
 
   useEffect(() => {
     run()
@@ -170,12 +143,7 @@ const styles = StyleSheet.create({
   progressText: { fontSize: 12, fontWeight: '800', color: Colors.gray },
   content: { flex: 1 },
   scrollContent: { padding: 24, paddingBottom: 40 },
-  stepBadge: { alignSelf: 'flex-start', backgroundColor: Colors.primaryBg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, marginBottom: 16 },
-  stepBadgeText: { fontSize: 11, fontWeight: '800', color: Colors.primary, letterSpacing: 1 },
   errorText: { color: Colors.danger, fontSize: 16 },
-  footer: { padding: 16, backgroundColor: Colors.white, borderTopWidth: 1, borderColor: Colors.grayLight },
-  continueBtn: { backgroundColor: Colors.primary, padding: 16, borderRadius: 14, alignItems: 'center' },
-  continueBtnText: { color: Colors.white, fontSize: 16, fontWeight: '700' },
 
   loadingWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24, backgroundColor: Colors.surface },
   loadingCircle: { width: 100, height: 100, borderRadius: 50, backgroundColor: Colors.primaryBg, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: Colors.primaryLight },
