@@ -6,7 +6,6 @@ import { resolveCurrentLevel } from "../utils/planLevel";
 transformersEnv.cacheDir = path.join(__dirname, "../../.model-cache/");
 
 const MODEL_NAME = "onnx-community/all-MiniLM-L6-v2-ONNX";
-// Tuned against real pairs run through this model — near-duplicate phrasings score
 // 0.71-0.91 ("acoustic guitar lessons" / "guitar basics" ~0.71, "guitar" / "guitars" ~0.91,
 
 const SIMILARITY_THRESHOLD = 0.90;

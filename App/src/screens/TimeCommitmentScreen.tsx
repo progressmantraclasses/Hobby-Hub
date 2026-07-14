@@ -32,9 +32,6 @@ export default function TimeCommitmentScreen() {
     if (!hobby || !level) return;
     try {
       const plan = await run({ hobby, level, weeklyTime: time });
-      // Keep the loading view up until the screen actually unmounts — otherwise the
-      // hook's status flips to 'success' a tick before navigate() takes effect, and
-      // the form flashes back into view in between.
       setNavigating(true);
       addHobby(plan);
       navigation.navigate('CourseDetail');

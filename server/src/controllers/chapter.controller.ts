@@ -7,10 +7,6 @@ import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
 import type { ChapterContent, VideoStep } from "../schemas/plan.schema";
 import { logger } from "../utils/logger";
 
-// Same in-flight coalescing as plan.controller.ts: a duplicate request for the same
-// planId+chapterId (e.g. a client retry after its own request timed out while the first
-// call was still generating) attaches to the generation already in progress instead of
-// starting a second one.
 const inFlightGenerations = new Map<string, Promise<ChapterContent>>();
 
 async function resolveAndPersistChapter(

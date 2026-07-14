@@ -2,10 +2,6 @@ import { NativeModules, Platform } from 'react-native';
 import { PlanRequest, Plan, PlanSchema, ChapterContentSchema, ChapterContent } from '../schemas/plan.schema';
 
 const API_PORT = 5000;
-// Generation can internally retry up to 3x against the LLM (e.g. when it returns
-// invalid JSON), so a short timeout here fires while the server is still legitimately
-// working — the client gives up, the server doesn't, and a user retry then starts a
-// second, duplicate generation for the same request. Comfortably exceed worst case.
 const REQUEST_TIMEOUT_MS = 90000;
 
 function getDevHost(): string {

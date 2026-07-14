@@ -335,10 +335,6 @@ const PracticeStep = ({ step, onNext }: { step: PracticeStepData; onNext?: () =>
   </View>
 );
 
-// Each step component takes its own narrow, schema-derived prop type (SummaryStepData,
-// VideoStepData, ...), so this lookup map can't carry a single precise value type — TS has
-// no sound way to express "a function whose param type depends on the record key" here.
-// The cast lives at this one boundary only; every component body above is fully typed.
 export const stepRenderers: Record<LearningStep['type'], React.FC<any>> = {
   summary: SummaryStep,
   video: VideoStep,

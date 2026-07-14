@@ -30,15 +30,11 @@ declare global {
   }
 }
 
-// Screens nested inside the Learn stack (Hobby/Level/TimeCommitment) can navigate to their
-// stack siblings as well as up to root-level screens like CourseDetail.
 export type LearnScreenNavigationProp<T extends keyof LearnStackParamList> = CompositeNavigationProp<
   NativeStackNavigationProp<LearnStackParamList, T>,
   NativeStackNavigationProp<RootStackParamList>
 >;
 
-// Screens nested inside the bottom tab bar (Home/Course) can navigate to their tab
-// siblings as well as up to root-level screens like ChapterFlow.
 export type MainTabScreenNavigationProp<T extends keyof MainTabParamList> = CompositeNavigationProp<
   BottomTabNavigationProp<MainTabParamList, T>,
   NativeStackNavigationProp<RootStackParamList>

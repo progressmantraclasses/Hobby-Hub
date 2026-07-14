@@ -22,7 +22,7 @@ const validContent = () => ({
     { type: "reflection", question: "What is a chord?", format: "shortAnswer", correctAnswer: "A group of notes played together" },
     { type: "reading", content: "A chord is formed by playing multiple notes simultaneously. ".repeat(30), tips: ["Practice slowly"], commonMistakes: ["Rushing"], imagePrompts: ["guitar chord diagram"] },
     { type: "interactive", activityType: "flashcard", cards: [{ front: "C Major", back: "C E G" }] },
-    { type: "quiz", passingScore: 70, questions: Array.from({ length: 5 }, (_, i) => ({ question: `Q${i+1}?`, type: "mcq", options: ["A","B","C","D"], correctAnswer: "A" })) },
+    { type: "quiz", passingScore: 70, questions: Array.from({ length: 5 }, (_, i) => ({ question: `Q${i + 1}?`, type: "mcq", options: ["A", "B", "C", "D"], correctAnswer: "A" })) },
     { type: "practice", task: "Practice C major chord transitions", expectedOutcome: "Smooth transitions", suggestedMinutes: 15 },
   ],
 });
@@ -62,15 +62,15 @@ describe("ChapterMetaSchema", () => {
 });
 
 describe("PlanSchema", () => {
-  it("passes with 5-10 chapters", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 7 }, (_, i) => validChapter(i+1)))).success).toBe(true));
-  it("fails with fewer than 5 chapters", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 4 }, (_, i) => validChapter(i+1)))).success).toBe(false));
-  it("allows more than 10 chapters at the schema level (the service trims it)", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 12 }, (_, i) => validChapter(i+1)))).success).toBe(true));
+  it("passes with 5-10 chapters", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 7 }, (_, i) => validChapter(i + 1)))).success).toBe(true));
+  it("fails with fewer than 5 chapters", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 4 }, (_, i) => validChapter(i + 1)))).success).toBe(false));
+  it("allows more than 10 chapters at the schema level (the service trims it)", () => expect(PlanSchema.safeParse(validPlan(Array.from({ length: 12 }, (_, i) => validChapter(i + 1)))).success).toBe(true));
   it("fails when chapter summary is missing", () => {
-    const chapters = Array.from({ length: 5 }, (_, i) => i === 0 ? { ...validChapter(1), summary: undefined } : validChapter(i+1));
+    const chapters = Array.from({ length: 5 }, (_, i) => i === 0 ? { ...validChapter(1), summary: undefined } : validChapter(i + 1));
     expect(PlanSchema.safeParse(validPlan(chapters as Record<string, unknown>[])).success).toBe(false);
   });
   it("falls back instead of failing on a bad currentLevel/targetLevel or a string weeklyTimeHours", () => {
-    const chapters = Array.from({ length: 5 }, (_, i) => validChapter(i+1));
+    const chapters = Array.from({ length: 5 }, (_, i) => validChapter(i + 1));
     const plan = { ...validPlan(chapters), currentLevel: "expert", targetLevel: "guru", weeklyTimeHours: "5" };
     const r = PlanSchema.safeParse(plan);
     expect(r.success).toBe(true);
@@ -93,12 +93,12 @@ describe("ChapterContentSchema", () => {
   });
   it("allows more than 2 search queries at the schema level (the service trims it)", () => {
     const c = validContent();
-    (c.steps[1] as { searchQueries?: string[] }).searchQueries = ["q1","q2","q3"];
+    (c.steps[1] as { searchQueries?: string[] }).searchQueries = ["q1", "q2", "q3"];
     expect(ChapterContentSchema.safeParse(c).success).toBe(true);
   });
   it("passes with scenario interactive type", () => {
     const c = validContent();
-    (c.steps[4] as Record<string, unknown>) = { type: "interactive", activityType: "scenario", situation: "You need to pick a chord", choices: ["C","G"], bestChoice: "C" };
+    (c.steps[4] as Record<string, unknown>) = { type: "interactive", activityType: "scenario", situation: "You need to pick a chord", choices: ["C", "G"], bestChoice: "C" };
     expect(ChapterContentSchema.safeParse(c).success).toBe(true);
   });
   it("coerces a wrong-case step type instead of failing", () => {

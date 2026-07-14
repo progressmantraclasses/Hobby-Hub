@@ -2,7 +2,7 @@
 
 This is the Node.js / Express backend server for **Hobby Hub**. It handles AI integration, rate limiting, and customized plan generation logic with a three-tier caching system.
 
-## ⚙️ Features & Architecture
+## Features & Architecture
 
 - **Express Server**: Fast, unopinionated web framework for Node.js REST APIs.
 - **Three-Tier Caching System**:
@@ -13,7 +13,7 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - **AI Integration**: Communicates with the Groq SDK (Llama-3.1 model) to generate fully structured, gamified hobby roadmaps in JSON format.
 - **Rate Limiting**: Protects expensive LLM routes using Redis sorted-set window rate limiting, keyed on `req.ip`. `trust proxy` is enabled so the real client IP is used even behind a reverse proxy / load balancer.
 
-## 📂 Project Structure
+## Project Structure
 - `src/config`: `env.ts` (validated env vars), `mongo.ts`, `redis.ts`
 - `src/controllers`: `plan.controller.ts`, `chapter.controller.ts`, `video.controller.ts`
 - `src/routes`: route definitions, one file per resource
@@ -23,7 +23,7 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - `src/middleware`: `rateLimiter`, `errorHandler`
 - `src/tests`: Jest test suites
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Runtime**: Node.js
 - **Framework**: Express.js
@@ -35,7 +35,7 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - **Validation**: Zod
 - **Testing**: Jest & Supertest
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### 1. Generate Hobby Plan
 **Endpoint:** `POST /api/generate-plan`
@@ -59,7 +59,7 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - **Description:** Generates expanded, in-depth content (the 7-step learning flow) for one chapter of a specific plan. Scoped by `planId` so that chapters with the same slug across different plans never collide. Returns the cached `steps` immediately if this chapter was already generated.
 - **Params:** `planId` (Mongo `_id` of the plan), `chapterId` (chapter slug, unique within that plan)
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v22.11.0 or higher)
@@ -121,4 +121,4 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
      ```bash
      npx ts-node-dev --respawn=false --project tsconfig.dev.json src/scripts/clean.ts
      ```
-     ⚠️ **Destructive** — flushes the entire Redis database and drops every MongoDB collection (plans, video cache, everything). There's no scoped/partial-clear option; use this only when you want to reset local/dev state from scratch, not as a routine fix for a single bad cache entry.
+     **Destructive** — flushes the entire Redis database and drops every MongoDB collection (plans, video cache, everything). There's no scoped/partial-clear option; use this only when you want to reset local/dev state from scratch, not as a routine fix for a single bad cache entry.

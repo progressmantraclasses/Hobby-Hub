@@ -7,8 +7,6 @@ export type ChapterStatus = 'pending' | 'in_progress' | 'completed' | 'skipped';
 
 const STORE_VERSION = 3;
 
-// Streak days must be counted against the device's local calendar day, not UTC —
-// toISOString() would roll the date over at UTC midnight instead of the user's own midnight.
 const toLocalDateKey = (date: Date) => {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');

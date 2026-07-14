@@ -18,7 +18,7 @@ export interface YouTubeVideo {
 
 export async function searchVideos(query: string): Promise<YouTubeVideo[]> {
   const queryNormalized = query.trim().toLowerCase();
-  
+
   const cached = await VideoCache.findOne({ queryNormalized }).lean();
   if (cached) return cached.videos as YouTubeVideo[];
 
@@ -83,8 +83,6 @@ export async function searchVideos(query: string): Promise<YouTubeVideo[]> {
     };
   });
 
-  // Only cache a real result — caching an empty list here would permanently "poison" this
-  // query for 7 days (the TTL below) even after a transient API failure clears up.
   if (formattedVideos.length) {
     await VideoCache.create({ queryNormalized, videos: formattedVideos });
   }

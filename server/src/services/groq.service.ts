@@ -39,11 +39,6 @@ async function callGroq(system: string, user: string) {
   return JSON.parse(res.choices[0]?.message?.content ?? "{}");
 }
 
-// Shared by generatePlan/generateChapterContent: both call Groq with a prompt, validate the
-// JSON it returns against a Zod schema, and retry a few times if the model returns something
-// that doesn't parse. On the final attempt, a Groq API failure (outage, rate limit, bad key)
-// is raised as an AIProviderError so the client gets a 503, not a generic 500 — anything else
-// (malformed JSON that fails our schema) keeps the original, caller-specific message.
 async function generateWithRetries<T>(
   label: string,
   attempt: () => Promise<T>,
@@ -55,7 +50,7 @@ async function generateWithRetries<T>(
     try {
       return await attempt();
     } catch (error) {
-      logger.warn(`\n⚠️ [${label}] AI returned invalid data. Retrying... (Attempt ${attemptNum} of ${MAX_RETRIES})`);
+      logger.warn(`\n [${label}] AI returned invalid data. Retrying... (Attempt ${attemptNum} of ${MAX_RETRIES})`);
 
       if (attemptNum === MAX_RETRIES) {
         if (error instanceof z.ZodError) {
@@ -78,7 +73,7 @@ async function generateWithRetries<T>(
 export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
   const { hobby, level, weeklyTime } = PlanRequestSchema.parse(input);
   const currentLevel = resolveCurrentLevel(level);
-  const targetLevel  = currentLevel === "beginner" ? "intermediate" : "advanced";
+  const targetLevel = currentLevel === "beginner" ? "intermediate" : "advanced";
 
   return generateWithRetries(
     "Plan Generation",
@@ -86,9 +81,6 @@ export async function generatePlan(input: unknown): Promise<GeneratedPlan> {
       const raw = await callGroq(PLAN_PROMPT, `Hobby: ${hobby}\nCurrent level: ${currentLevel}\nTarget level: ${targetLevel}\nWeekly time: ${weeklyTime}h`);
       const generated = GeneratedPlanSchema.parse(raw);
 
-      // Trust our own request inputs over whatever the model echoed back for these fields, and
-      // force freshly generated chapters to their real starting state — none of this needs the
-      // model to get it right, so there's no reason to fail (and retry) the whole plan over it.
       generated.hobby = hobby;
       generated.currentLevel = currentLevel as "beginner" | "intermediate";
       generated.targetLevel = targetLevel;
@@ -109,9 +101,6 @@ export async function generateChapterContent(hobby: string, level: string, title
     async () => {
       const raw = await callGroq(CHAPTER_PROMPT, `Hobby: ${hobby}\nLevel: ${level}\nChapter title: ${title}\nChapter summary: ${summary}`);
       const content = ChapterContentSchema.parse(raw);
-
-      // The schema no longer rejects an over-count here (that would throw away otherwise-valid
-      // content just for exceeding a limit) — trim to the intended bounds after a successful parse.
       const [, videoStep, , , , quizStep] = content.steps;
       videoStep.searchQueries = videoStep.searchQueries.slice(0, 2);
       quizStep.questions = quizStep.questions.slice(0, 10);

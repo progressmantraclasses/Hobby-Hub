@@ -4,8 +4,6 @@ export const getLevel = (xp: number) => Math.floor(xp / XP_PER_LEVEL) + 1;
 export const getXpProgress = (xp: number) => (xp % XP_PER_LEVEL) / XP_PER_LEVEL;
 
 export const greeting = () => {
-  // getHours() inherently returns the local hour in 24-hour format (0-23)
-  // regardless of whether the device is set to 12-hour or 24-hour display.
   const h = new Date().getHours();
 
   if (h >= 5 && h < 12) return 'Good morning';

@@ -2,13 +2,13 @@
 
 This is the mobile application client for **Hobby Hub**, a gamified learning and customized roadmap generator built with React Native.
 
-## 📱 Features
+## Features
 
 - **AI-Powered Learning Plans**: Displays customized roadmaps for learning hobbies.
 - **Gamified UI**: Includes an RPG-style leveling system, daily streaks, and engaging animations using React Native Reanimated.
 - **Interactive Modules**: Provides flashcards, short quizzes, and integrated YouTube lessons (`react-native-youtube-iframe`).
 
-## 🛠 Tech Stack & In-Depth Architecture
+## Tech Stack & In-Depth Architecture
 
 ### State Management & Persistence
 The app heavily relies on an optimized state management architecture for offline persistence and high performance:
@@ -27,7 +27,7 @@ The app heavily relies on an optimized state management architecture for offline
 ### Data Validation
 - **Zod (`zod`)**: Ensures runtime type safety for data received from the backend API, bridging the gap between TypeScript types and actual network payloads.
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js (v22.11.0 or higher)
@@ -74,7 +74,7 @@ The app heavily relies on an optimized state management architecture for offline
      ```
      Runs ESLint to check for code issues.
 
-## 📂 Project Structure
+## Project Structure
 - `src/screens`: One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Profile).
 - `src/components`: Shared UI components, including `stepRenderers/` (one renderer per chapter step type).
 - `src/navigation`: `RootNavigator.tsx` — the stack + bottom-tab navigator.

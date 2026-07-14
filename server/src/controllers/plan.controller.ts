@@ -9,10 +9,6 @@ import { normalizeQuery } from "../utils/normalizeQuery";
 import { logger } from "../utils/logger";
 import { REDIS_CACHE_TTL } from "../config/constants";
 
-// Coalesces concurrent cache-miss requests for the same normalized key onto a single
-// in-flight generation. Without this, two requests that both miss the cache — e.g. a
-// client retrying after its own request timed out while the first call was still
-// generating — each kick off their own full (slow, costly) Groq generation.
 const inFlightGenerations = new Map<string, Promise<Plan>>();
 
 async function resolveAndCachePlan(key: string, requestData: PlanRequest): Promise<Plan> {

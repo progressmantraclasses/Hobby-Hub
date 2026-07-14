@@ -8,8 +8,6 @@ import { errorHandler } from "./middleware/errorHandler.middleware";
 
 const app = express();
 
-// Trust the first hop (reverse proxy / load balancer) so req.ip reflects the real
-// client address from X-Forwarded-For — the rate limiter keys on req.ip per-client.
 app.set("trust proxy", 1);
 
 app.use(helmet());

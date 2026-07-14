@@ -2,9 +2,7 @@ import { z } from "zod";
 import { ChapterMetaSchema } from "./chapter-meta.schema";
 
 export const GeneratedPlanSchema = z.object({
-  // hobby/currentLevel/targetLevel/weeklyTimeHours are values the model is only asked to echo
-  // back — we already know them from the request itself, so parsing tolerates any drift here;
-  // groq.service.ts overwrites all four with our own trusted values after a successful parse.
+
   hobby: z.string().catch(""),
   currentLevel: z.enum(["beginner", "intermediate"]).catch("beginner"),
   targetLevel: z.enum(["intermediate", "advanced"]).catch("intermediate"),
