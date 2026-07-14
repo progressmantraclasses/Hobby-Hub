@@ -68,12 +68,6 @@ The app heavily relies on an optimized state management architecture for offline
      ```
      Builds and installs the app on an iOS simulator or connected device.
 
-   - **Run Tests:**
-     ```bash
-     npm test
-     ```
-     Executes the Jest test suite.
-
    - **Run Linter:**
      ```bash
      npm run lint
@@ -81,12 +75,12 @@ The app heavily relies on an optimized state management architecture for offline
      Runs ESLint to check for code issues.
 
 ## 📂 Project Structure
-- `src/screens`: One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Dashboard, Profile).
-- `src/components`: Shared UI components, including `stepRenderers/` (one renderer per chapter step type) and.
+- `src/screens`: One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Profile).
+- `src/components`: Shared UI components, including `stepRenderers/` (one renderer per chapter step type).
 - `src/navigation`: `RootNavigator.tsx` — the stack + bottom-tab navigator.
 - `src/store`: `planStore.ts` — the Zustand store (hobbies, chapter progress, XP/streak, onboarding draft fields), persisted via AsyncStorage.
-- `src/services`: `api.ts` — fetch calls to the backend. **Note:** `BASE_URL` is a hardcoded LAN IP — update it to your machine's local network IP before running against a local backend (not `localhost`, since physical devices/emulators can't reach it).
-- `src/hooks`: `useAsyncTask` (shared loading/error/success state for async calls), `useIsWideScreen`.
+- `src/services`: `api.ts` — fetch calls to the backend. In development it auto-detects the backend host from the Metro bundle's own URL (`NativeModules.SourceCode.scriptURL`), assuming the server runs on port `5000` (the `API_PORT` constant) — no manual IP editing needed. Release builds use a fixed production `BASE_URL` in the same file.
+- `src/hooks`: `useAsyncTask` (shared loading/error/success state for async calls), `useThinkingAnimation` (pulsing "thinking" loading indicator).
 - `src/constants`: Static config data (badges, hobby lists/emoji, levels, chapter-status labels/colors, rank thresholds, tab icons).
 - `src/theme`: `colors.ts` — the app's single design-token color palette.
 - `src/schemas`: Zod schemas matching the backend's response shapes.

@@ -17,7 +17,7 @@ Hobby-Hub/
 - **AI-generated learning plans** — a structured, multi-chapter roadmap tailored to hobby, experience level, and weekly time, generated via Groq's Llama-3.1.
 - **Per-chapter generated content** — each chapter's 7-step learning flow (summary, video, reflection, reading, interactive activity, quiz, practice) is generated on demand and cached once generated.
 - **Gamification** — XP, levels, daily streaks, badges, and per-hobby progress tracking, persisted locally.
-- **Two-tier caching** — Redis (exact-match key-value cache) in front of MongoDB (persistent document cache), so a previously requested `hobby:level:weeklyTime` combination is served without hitting the LLM again.
+- **Three-tier caching** — Redis (exact-match) → MongoDB (persistent document cache) → local semantic-embedding match, so both exact repeats and near-duplicate requests (e.g. "guitar basics" vs "guitars") are served without hitting the LLM again.
 - **Auto-fetched instructional videos** — YouTube search results are filtered and ranked by the LLM to attach a relevant video to each chapter's video step.
 
 ---
@@ -54,10 +54,10 @@ Hobby-Hub/
 components/         Shared UI components
   stepRenderers/     One renderer per chapter step type (summary, video, reflection, reading, interactive, quiz, practice)
 constants/           Static config data (badges, hobby lists/emoji, levels, chapter-status labels/colors, rank thresholds, tab icons)
-hooks/               useAsyncTask (loading/error/success state for async calls), useIsWideScreen
+hooks/               useAsyncTask (loading/error/success state for async calls), useThinkingAnimation (pulsing "thinking" loading indicator)
 navigation/          RootNavigator (stack + bottom tabs)
 schemas/             Zod schemas shared with the shape returned by the backend (plan, chapter content)
-screens/             One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Dashboard, Profile)
+screens/             One file per screen (Home, Hobby, Level, TimeCommitment, Course, CourseDetail, ChapterDetail, ChapterFlow, ChapterComplete, Profile)
 services/            api.ts — fetch calls to the backend
 store/               planStore.ts — Zustand store (hobbies, progress, XP/streak, onboarding draft fields)
 theme/               colors.ts — the app's single design-token palette
@@ -129,7 +129,7 @@ iOS only (macOS):
 cd ios && bundle install && bundle exec pod install && cd ..
 ```
 
-**Before running the app**, point it at your backend: `App/src/services/api.ts` has a hardcoded `BASE_URL` (currently a LAN IP, e.g. `http://192.168.1.34:5000/api`). Change it to your machine's LAN IP (not `localhost` — physical devices and most emulators can't reach your machine's `localhost`) so the app can reach the server started in step 2.
+In development, `App/src/services/api.ts` auto-detects your backend host — it reads the Metro bundler's own address out of the running JS bundle's URL (`NativeModules.SourceCode.scriptURL`), so no manual IP configuration is needed as long as your device/emulator can reach the machine running `npm start` on port `5000` (the `API_PORT` constant in `api.ts` — change it if your server uses a different port). Release builds instead point at a fixed production URL hardcoded in the same file — update that before shipping.
 
 ```bash
 npm start           # starts the Metro bundler
@@ -178,9 +178,17 @@ graph TD
 
 1. **Redis** — plans are cached under a normalized key (`hobby:level:weeklyTime`, e.g. `guitar:beginner:5`) with a 24h TTL. An exact match returns instantly.
 2. **MongoDB** — on a Redis miss, the server checks for a document with a matching `normalizedQuery`. A hit is re-written back into Redis.
-3. **Semantic cache** (`services/semanticCache.service.ts`) — on a MongoDB miss, plans with the same `level`/`weeklyTime` are compared against the request's hobby text using a real sentence embedding, computed locally via [`@huggingface/transformers`](https://github.com/huggingface/transformers.js) (`onnx-community/all-MiniLM-L6-v2-ONNX`, running fully in-process — no API key, no per-request network call). Cosine similarity threshold `0.65`, tuned so it catches genuine near-duplicates and paraphrases (e.g. "learn to strum a guitar" ↔ "acoustic guitar lessons" scores ~0.63 despite sharing almost no words) while keeping different-but-related hobbies apart (e.g. "guitar" vs "piano" stays at ~0.57). A hit is written back into Redis.
-4. **Groq (Llama-3.1)** — only reached when all three caches miss; the generated plan is persisted to MongoDB (with its embedding) and Redis for next time.
+3. **Semantic cache** (`services/semanticCache.service.ts`) — on a MongoDB miss, plans with the same `level`/`weeklyTime` are compared against the request's hobby text using a real sentence embedding, computed locally via [`@huggingface/transformers`](https://github.com/huggingface/transformers.js) (`onnx-community/all-MiniLM-L6-v2-ONNX`, running fully in-process — no API key, no per-request network call). Cosine similarity threshold `0.90`, tuned against real pairs run through this model: near-duplicate phrasings land around `0.71`–`0.91` (e.g. "acoustic guitar lessons" vs "guitar basics" ~`0.71`, "guitar" vs "guitars" ~`0.91`) — the threshold sits at the top of that range so only true near-duplicates hit the cache, not just related topics. A hit is written back into Redis.
+4. **Groq (Llama-3.1)** — only reached when all three caches miss; the generated plan is persisted to MongoDB (with its embedding) and Redis for next time. Concurrent requests that all miss the cache for the *same* key (e.g. two rapid submissions, or a client retry that fires while the first attempt is still generating) are coalesced onto a single in-flight generation instead of each independently calling Groq — see "Request Coalescing" below.
 
 The embedding model (~90MB) downloads once and is cached at `server/.model-cache/` (gitignored, kept outside `node_modules` so it survives `npm ci`/redeploys instead of re-downloading every time). The server warms it up at startup (`warmupSemanticCache()` in `server.ts`) so the first real request doesn't pay the load-time cost.
 
 Chapter content follows the same pattern per-chapter, scoped by plan ID: once a chapter's content is generated, it's stored on that chapter's `steps` field and served from MongoDB on subsequent requests without calling the LLM again.
+
+### Request Coalescing
+
+Both `plan.controller.ts` and `chapter.controller.ts` keep an in-process `Map` of the generation `Promise` for each key currently being generated (normalized `hobby:level:weeklyTime`, or `planId:chapterId`). If a second request for the same key arrives while the first is still in flight, it awaits the same promise instead of starting its own Groq/YouTube calls — so a client retry (e.g. after its own request timeout) never doubles the LLM cost or races to write the same document twice.
+
+### Reverse Proxy Awareness
+
+`app.set("trust proxy", 1)` is set in `app.ts` so `req.ip` — which the rate limiter keys on — reflects the real client address from `X-Forwarded-For` when the server sits behind a reverse proxy / load balancer, rather than the proxy's own address.

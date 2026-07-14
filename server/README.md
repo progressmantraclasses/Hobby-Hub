@@ -8,9 +8,10 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
 - **Three-Tier Caching System**:
   - **Upstash Redis**: Fast, in-memory cache keyed on `hobby:level:weeklyTime`, serves exact matches instantly.
   - **MongoDB Cache**: Persistent cache for successfully generated roadmaps and per-chapter content, falls back to Redis on a hit.
-  - **Semantic Cache** (`semanticCache.service.ts`): On a MongoDB miss, candidates with the same `level`/`weeklyTime` are compared against the request's hobby text using a real sentence embedding computed locally via `@huggingface/transformers` (`onnx-community/all-MiniLM-L6-v2-ONNX`, ONNX runtime, no API key, no per-request network call). Cosine similarity threshold `0.65` — catches genuine paraphrases (e.g. "learn to strum a guitar" ↔ "acoustic guitar lessons", ~0.63 similarity despite sharing almost no words) while keeping different-but-related hobbies apart (e.g. "guitar" vs "piano" stays ~0.57). The model (~90MB) is cached at `server/.model-cache/` (gitignored, outside `node_modules` so it survives redeploys) and warmed up at server startup so the first request isn't the one that pays the load cost.
+  - **Semantic Cache** (`semanticCache.service.ts`): On a MongoDB miss, candidates with the same `level`/`weeklyTime` are compared against the request's hobby text using a real sentence embedding computed locally via `@huggingface/transformers` (`onnx-community/all-MiniLM-L6-v2-ONNX`, ONNX runtime, no API key, no per-request network call). Cosine similarity threshold `0.90`, tuned against real pairs run through this model: near-duplicate phrasings land around `0.71`–`0.91` (e.g. "acoustic guitar lessons" vs "guitar basics" ~`0.71`, "guitar" vs "guitars" ~`0.91`) — the threshold sits at the top of that range so only true near-duplicates hit the cache. The model (~90MB) is cached at `server/.model-cache/` (gitignored, outside `node_modules` so it survives redeploys) and warmed up at server startup so the first request isn't the one that pays the load cost.
+- **Request Coalescing**: `plan.controller.ts` and `chapter.controller.ts` each keep an in-process map of the generation `Promise` for any key currently being generated. A duplicate request for the same key (a double-submit, or a client retry after its own timeout) attaches to the generation already in flight instead of triggering a second, independent Groq/YouTube call.
 - **AI Integration**: Communicates with the Groq SDK (Llama-3.1 model) to generate fully structured, gamified hobby roadmaps in JSON format.
-- **Rate Limiting**: Protects expensive LLM routes using Redis sorted-set window rate limiting.
+- **Rate Limiting**: Protects expensive LLM routes using Redis sorted-set window rate limiting, keyed on `req.ip`. `trust proxy` is enabled so the real client IP is used even behind a reverse proxy / load balancer.
 
 ## 📂 Project Structure
 - `src/config`: `env.ts` (validated env vars), `mongo.ts`, `redis.ts`
@@ -115,3 +116,9 @@ This is the Node.js / Express backend server for **Hobby Hub**. It handles AI in
      npm test
      ```
      Executes the Jest test suite.
+
+   - **Wipe all cached/persisted data (`src/scripts/clean.ts`):**
+     ```bash
+     npx ts-node-dev --respawn=false --project tsconfig.dev.json src/scripts/clean.ts
+     ```
+     ⚠️ **Destructive** — flushes the entire Redis database and drops every MongoDB collection (plans, video cache, everything). There's no scoped/partial-clear option; use this only when you want to reset local/dev state from scratch, not as a routine fix for a single bad cache entry.
