@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import { AIProviderError } from "../utils/errors";
+import { logger } from "../utils/logger";
 
 export function errorHandler(
   err: unknown,
@@ -7,7 +8,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
-  console.error(err);
+  logger.error(err);
 
   if (err instanceof AIProviderError) {
     res.status(503).json({
@@ -17,6 +18,6 @@ export function errorHandler(
     return;
   }
 
-  const message = err instanceof Error ? err.message : "Internal server error";
-  res.status(500).json({ error: message });
+  res.status(500).json({ error: "Internal server error" });
 }
+

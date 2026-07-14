@@ -5,6 +5,7 @@ import { generateChapterContent } from "../services/groq.service";
 import { searchVideos } from "../services/youtube.service";
 import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
 import type { VideoStep } from "../schemas/plan.schema";
+import { logger } from "../utils/logger";
 
 export async function chapterGenerateController(req: Request, res: Response, next: NextFunction) {
   const { planId, chapterId } = req.params as { planId: string; chapterId: string };
@@ -38,7 +39,7 @@ export async function chapterGenerateController(req: Request, res: Response, nex
           videoStep.videoSummary = result.justification;
         }
       } catch (e) {
-        console.error("Failed to fetch video:", e);
+        logger.error("Failed to fetch video:", e);
       }
     }
 

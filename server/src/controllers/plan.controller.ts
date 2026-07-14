@@ -6,8 +6,8 @@ import { generateEmbedding, findSimilarPlan } from "../services/semanticCache.se
 import { redis } from "../config/redis";
 import { Plan as PlanModel } from "../models/Plan.model";
 import { normalizeQuery } from "../utils/normalizeQuery";
-
-const TTL = 60 * 60 * 24;
+import { logger } from "../utils/logger";
+import { REDIS_CACHE_TTL } from "../config/constants";
 
 export async function planController(req: Request, res: Response, next: NextFunction) {
   const parsed = PlanRequestSchema.safeParse(req.body);
@@ -22,16 +22,16 @@ export async function planController(req: Request, res: Response, next: NextFunc
   try {
     const cached = await redis.get<Plan>(key);
     if (cached) {
-      console.log(`[redis-hit] ${key}`);
+      logger.info(`[redis-hit] ${key}`);
       res.json(cached);
       return;
     }
 
     const mongoDoc = await PlanModel.findOne({ normalizedQuery: key }).lean();
     if (mongoDoc) {
-      console.log(`[mongo-hit] ${key}`);
+      logger.info(`[mongo-hit] ${key}`);
       const plan = PlanSchema.parse({ ...mongoDoc, id: mongoDoc._id.toString() });
-      await redis.set(key, plan, { ex: TTL });
+      await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
       res.json(plan);
       return;
     }
@@ -40,18 +40,18 @@ export async function planController(req: Request, res: Response, next: NextFunc
 
     const similarDoc = await findSimilarPlan(queryEmbedding, level, weeklyTime);
     if (similarDoc) {
-      console.log(`[semantic-hit] ${key}`);
+      logger.info(`[semantic-hit] ${key}`);
       const plan = PlanSchema.parse({ ...similarDoc, id: similarDoc._id.toString() });
-      await redis.set(key, plan, { ex: TTL });
+      await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
       res.json(plan);
       return;
     }
 
-    console.log(`[groq-miss] ${key}`);
+    logger.info(`[groq-miss] ${key}`);
     const generated = await generatePlan(parsed.data);
     const created = await PlanModel.create({ ...generated, normalizedQuery: key, embedding: queryEmbedding });
     const plan = PlanSchema.parse({ ...generated, id: created._id.toString() });
-    await redis.set(key, plan, { ex: TTL });
+    await redis.set(key, plan, { ex: REDIS_CACHE_TTL });
     res.json(plan);
   } catch (err) {
     if (err instanceof ZodError) {

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { env } from "../config/env";
 import { AIProviderError } from "../utils/errors";
 import { PlanRequestSchema, GeneratedPlanSchema, ChapterContentSchema, type GeneratedPlan, type ChapterContent } from "../schemas/plan.schema";
+import { logger } from "../utils/logger";
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
 
@@ -51,15 +52,15 @@ async function generateWithRetries<T>(
     try {
       return await attempt();
     } catch (error) {
-      console.warn(`\n⚠️ [${label}] AI returned invalid data. Retrying... (Attempt ${attemptNum} of ${MAX_RETRIES})`);
+      logger.warn(`\n⚠️ [${label}] AI returned invalid data. Retrying... (Attempt ${attemptNum} of ${MAX_RETRIES})`);
 
       if (attemptNum === MAX_RETRIES) {
         if (error instanceof z.ZodError) {
-          console.error("Zod Validation Errors on final attempt:", JSON.stringify(error.flatten(), null, 2));
+          logger.error("Zod Validation Errors on final attempt:", { errors: error.flatten() });
           throw new Error(finalErrorMessage, { cause: error });
         }
         if (error instanceof Groq.APIError) {
-          console.error(`Groq API Error on final attempt (${error.status}):`, error.message);
+          logger.error(`Groq API Error on final attempt (${error.status}): ${error.message}`);
           throw new AIProviderError(finalErrorMessage, { cause: error });
         }
         throw new Error(finalErrorMessage, { cause: error });
