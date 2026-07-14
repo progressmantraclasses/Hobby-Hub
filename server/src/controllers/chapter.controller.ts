@@ -4,6 +4,7 @@ import { Plan } from "../models/Plan.model";
 import { generateChapterContent } from "../services/groq.service";
 import { searchVideos } from "../services/youtube.service";
 import { filterCandidates, rankWithLLM } from "../services/videoFilter.service";
+import type { VideoStep } from "../schemas/plan.schema";
 
 export async function chapterGenerateController(req: Request, res: Response, next: NextFunction) {
   const { planId, chapterId } = req.params as { planId: string; chapterId: string };
@@ -12,8 +13,7 @@ export async function chapterGenerateController(req: Request, res: Response, nex
     const planDoc = await Plan.findById(planId);
     if (!planDoc) { res.status(404).json({ error: "Plan not found" }); return; }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chapter = planDoc.chapters.find((c: any) => c.id === chapterId);
+    const chapter = planDoc.chapters.find((c) => c.id === chapterId);
     if (!chapter) { res.status(404).json({ error: "Chapter not found" }); return; }
 
     if (chapter.contentGenerated && chapter.steps) {
@@ -22,11 +22,10 @@ export async function chapterGenerateController(req: Request, res: Response, nex
     }
 
     const content = await generateChapterContent(
-      planDoc.hobby as string, planDoc.currentLevel as string, chapter.title as string, chapter.summary as string
+      planDoc.hobby, planDoc.currentLevel, chapter.title, chapter.summary
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const videoStep = content.steps.find((s: any) => s.type === "video") as any;
+    const videoStep = content.steps.find((s): s is VideoStep => s.type === "video");
     if (videoStep && videoStep.searchQueries?.length) {
       try {
         const query = videoStep.searchQueries[0] as string;

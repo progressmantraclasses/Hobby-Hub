@@ -53,7 +53,6 @@ Hobby-Hub/
 ```
 components/         Shared UI components
   stepRenderers/     One renderer per chapter step type (summary, video, reflection, reading, interactive, quiz, practice)
-  resourceRenderers/ (currently empty — no components yet)
 constants/           Static config data (badges, hobby lists/emoji, levels, chapter-status labels/colors, rank thresholds, tab icons)
 hooks/               useAsyncTask (loading/error/success state for async calls), useIsWideScreen
 navigation/          RootNavigator (stack + bottom tabs)

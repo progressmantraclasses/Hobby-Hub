@@ -1,4 +1,5 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, type Types } from "mongoose";
+import type { ChapterContent } from "../schemas/plan.schema";
 
 const ChapterMetaSchema = new Schema({
   id: String, title: String, order: Number, summary: String,
@@ -18,4 +19,30 @@ const PlanSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export const Plan = model("Plan", PlanSchema);
+export interface PlanChapterDoc {
+  id: string;
+  title: string;
+  order: number;
+  summary: string;
+  estimatedMinutes: number;
+  completed: boolean;
+  contentGenerated: boolean;
+  steps: ChapterContent["steps"] | null;
+}
+
+export interface PlanDocument {
+  _id: Types.ObjectId;
+  hobby: string;
+  currentLevel: string;
+  targetLevel: string;
+  weeklyTimeHours: number;
+  estimatedDurationWeeks: number;
+  overview: string;
+  goal: string;
+  chapters: PlanChapterDoc[];
+  normalizedQuery: string;
+  embedding?: number[];
+  createdAt: Date;
+}
+
+export const Plan = model<PlanDocument>("Plan", PlanSchema);
