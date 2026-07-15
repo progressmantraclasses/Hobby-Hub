@@ -85,16 +85,27 @@ export default function ChapterFlowScreen() {
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
-      if (hobbyId) {
+      const chapterCompleteParams = (() => {
+        if (!hobbyId) return { chapter, xpEarned: 0 };
+        const alreadyCompleted = hobbies[hobbyId]?.chapterProgress[chapter.id] === 'completed';
+        updateChapterProgress(hobbyId, chapter.id, 'completed');
+        if (alreadyCompleted) return { chapter, xpEarned: 0 };
+
         const { xpTotal } = usePlanStore.getState();
         const prevLevel = Math.floor(xpTotal / XP_PER_LEVEL);
-        updateChapterProgress(hobbyId, chapter.id, 'completed');
         addXp(XP_PER_CHAPTER);
         const newLevel = Math.floor((xpTotal + XP_PER_CHAPTER) / XP_PER_LEVEL);
-        navigation.replace('ChapterComplete', { chapter, levelUp: newLevel > prevLevel, newLevel: newLevel + 1 });
-      } else {
-        navigation.replace('ChapterComplete', { chapter });
-      }
+        return { chapter, xpEarned: XP_PER_CHAPTER, levelUp: newLevel > prevLevel, newLevel: newLevel + 1 };
+      })();
+
+      navigation.reset({
+        index: 2,
+        routes: [
+          { name: 'MainTabs', params: { screen: 'Course' } },
+          { name: 'CourseDetail' },
+          { name: 'ChapterComplete', params: chapterCompleteParams },
+        ],
+      });
     }
   };
 

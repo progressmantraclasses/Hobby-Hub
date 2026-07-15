@@ -5,13 +5,12 @@ import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Colors } from '../theme/colors';
 import LevelUpCelebration from '../components/LevelUpCelebration';
-import { XP_PER_CHAPTER } from '../utils/xp';
 import { RootStackParamList } from '../navigation/types';
 
 export default function ChapterCompleteScreen() {
   const route = useRoute<RouteProp<RootStackParamList, 'ChapterComplete'>>();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'ChapterComplete'>>();
-  const { chapter, levelUp, newLevel } = route.params;
+  const { chapter, xpEarned, levelUp, newLevel } = route.params;
   const [showCelebration, setShowCelebration] = useState(!!levelUp);
 
   return (
@@ -21,13 +20,15 @@ export default function ChapterCompleteScreen() {
         <Text style={styles.emoji}>🎉</Text>
         <Text style={styles.title}>Chapter Complete!</Text>
         <Text style={styles.subtitle}>You've successfully finished "{chapter.title}".</Text>
-        <View style={styles.xpCard}>
-          <Text style={styles.xpLabel}>REWARD</Text>
-          <Text style={styles.xpValue}>+{XP_PER_CHAPTER} XP</Text>
-        </View>
+        {xpEarned > 0 && (
+          <View style={styles.xpCard}>
+            <Text style={styles.xpLabel}>REWARD</Text>
+            <Text style={styles.xpValue}>+{xpEarned} XP</Text>
+          </View>
+        )}
       </View>
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('CourseDetail')}>
+        <TouchableOpacity style={styles.btn} onPress={() => navigation.goBack()}>
           <Text style={styles.btnText}>Back to Course</Text>
         </TouchableOpacity>
       </View>

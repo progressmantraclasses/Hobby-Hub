@@ -21,7 +21,7 @@ export type RootStackParamList = {
   CourseDetail: undefined;
   ChapterDetail: { chapter: ChapterMeta; hobbyId?: string | null };
   ChapterFlow: { chapter: ChapterMeta; hobbyId?: string | null };
-  ChapterComplete: { chapter: ChapterMeta; levelUp?: boolean; newLevel?: number };
+  ChapterComplete: { chapter: ChapterMeta; xpEarned: number; levelUp?: boolean; newLevel?: number };
 };
 
 declare global {

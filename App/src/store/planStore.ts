@@ -127,14 +127,19 @@ export const usePlanStore = create<PlanState>()(
         delete (persisted as { hasHydrated?: boolean }).hasHydrated;
         return persisted;
       },
-      onRehydrateStorage: () => (state) => {
-        if (!state) return;
-        if (state.version !== STORE_VERSION) {
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.log('[planStore] Rehydration failed', error);
+          usePlanStore.setState({ hasHydrated: true });
+          return;
+        }
+        if (state && state.version !== STORE_VERSION) {
           console.log('[planStore] Version mismatch — clearing old storage');
           AsyncStorage.removeItem('plan-storage-v2');
-          Object.assign(state, initialState);
+          usePlanStore.setState({ ...initialState, hasHydrated: true });
+          return;
         }
-        state.hasHydrated = true;
+        usePlanStore.setState({ hasHydrated: true });
       },
     }
   )

@@ -3,11 +3,12 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, Animated, ScrollVi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlanStore } from '../store/planStore';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { generatePlan } from '../services/api';
 import { Colors } from '../theme/colors';
 import { useAsyncTask } from '../hooks/useAsyncTask';
 import { useThinkingAnimation } from '../hooks/useThinkingAnimation';
-import { LearnScreenNavigationProp } from '../navigation/types';
+import { LearnScreenNavigationProp, MainTabParamList, RootStackParamList } from '../navigation/types';
 
 export default function TimeCommitmentScreen() {
   const { hobby, level, addHobby } = usePlanStore();
@@ -34,7 +35,16 @@ export default function TimeCommitmentScreen() {
       const plan = await run({ hobby, level, weeklyTime: time });
       setNavigating(true);
       addHobby(plan);
-      navigation.navigate('CourseDetail');
+      const rootNavigation = navigation
+        .getParent<NativeStackNavigationProp<MainTabParamList>>()
+        ?.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      rootNavigation?.reset({
+        index: 1,
+        routes: [
+          { name: 'MainTabs', params: { screen: 'Course' } },
+          { name: 'CourseDetail' },
+        ],
+      });
     } catch {
       // error is surfaced via the hook's `error` state
     }
