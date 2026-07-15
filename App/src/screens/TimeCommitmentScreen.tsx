@@ -38,13 +38,17 @@ export default function TimeCommitmentScreen() {
       const rootNavigation = navigation
         .getParent<NativeStackNavigationProp<MainTabParamList>>()
         ?.getParent<NativeStackNavigationProp<RootStackParamList>>();
-      rootNavigation?.reset({
-        index: 1,
-        routes: [
-          { name: 'MainTabs', params: { screen: 'Course' } },
-          { name: 'CourseDetail' },
-        ],
-      });
+      if (rootNavigation) {
+        rootNavigation.reset({
+          index: 1,
+          routes: [
+            { name: 'MainTabs', params: { screen: 'Course' } },
+            { name: 'CourseDetail' },
+          ],
+        });
+      } else {
+        navigation.navigate('CourseDetail');
+      }
     } catch {
       // error is surfaced via the hook's `error` state
     }
